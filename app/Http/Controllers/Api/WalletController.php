@@ -16,7 +16,8 @@ class WalletController extends Controller
     public function __construct(
         private BalanceCalculatorService $balanceCalculator,
         private LedgerService $ledgerService
-    ) {}
+    ) {
+    }
 
     public function index(Request $request): JsonResponse
     {

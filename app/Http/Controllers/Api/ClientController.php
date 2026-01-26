@@ -14,7 +14,8 @@ class ClientController extends Controller
 {
     public function __construct(
         private BalanceCalculatorService $balanceCalculator
-    ) {}
+    ) {
+    }
 
     public function index(Request $request): JsonResponse
     {

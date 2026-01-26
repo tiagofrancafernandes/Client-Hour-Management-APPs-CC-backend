@@ -43,16 +43,14 @@ class BalanceCalculatorService
             ->groupBy('wallets.id')
             ->get();
 
-        return $wallets->map(function ($wallet) {
-            return [
-                'id' => $wallet->id,
-                'name' => $wallet->name,
-                'description' => $wallet->description,
-                'hourly_rate_reference' => $wallet->hourly_rate_reference,
-                'balance' => number_format((float) $wallet->balance, 2, '.', ''),
-                'created_at' => $wallet->created_at,
-                'updated_at' => $wallet->updated_at,
-            ];
-        })->toArray();
+        return $wallets->map(fn ($wallet) => [
+            'id' => $wallet->id,
+            'name' => $wallet->name,
+            'description' => $wallet->description,
+            'hourly_rate_reference' => $wallet->hourly_rate_reference,
+            'balance' => number_format((float) $wallet->balance, 2, '.', ''),
+            'created_at' => $wallet->created_at,
+            'updated_at' => $wallet->updated_at,
+        ])->toArray();
     }
 }

@@ -102,9 +102,7 @@ class ReportService
     {
         $entries = $this->getFilteredEntries($filters)->get();
 
-        return $entries->groupBy(function ($entry) {
-            return $entry->wallet->client_id;
-        })->map(function ($clientEntries) {
+        return $entries->groupBy(fn ($entry) => $entry->wallet->client_id)->map(function ($clientEntries) {
             $client = $clientEntries->first()->wallet->client;
 
             $totalCredits = $clientEntries->where('hours', '>', 0)->sum('hours');

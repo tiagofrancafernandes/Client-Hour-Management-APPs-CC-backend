@@ -10,7 +10,8 @@ class LedgerService
 {
     public function __construct(
         private BalanceCalculatorService $balanceCalculator
-    ) {}
+    ) {
+    }
 
     public function addCredit(Wallet $wallet, array $data): LedgerEntry
     {

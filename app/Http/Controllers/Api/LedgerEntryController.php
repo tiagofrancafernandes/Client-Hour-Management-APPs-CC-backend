@@ -14,7 +14,8 @@ class LedgerEntryController extends Controller
 {
     public function __construct(
         private LedgerService $ledgerService
-    ) {}
+    ) {
+    }
 
     public function index(Request $request): JsonResponse
     {
