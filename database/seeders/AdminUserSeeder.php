@@ -26,11 +26,11 @@ class AdminUserSeeder extends Seeder
         );
 
         if (class_exists(Role::class)) {
-            // Assign super_admin role
+            // Sync super_admin role (removes other roles and assigns super_admin)
             $superAdminRole = Role::firstWhere('name', 'super_admin');
 
-            if ($superAdminRole && ! $admin->hasRole('super_admin')) {
-                $admin->assignRole($superAdminRole);
+            if ($superAdminRole) {
+                $admin->syncRoles([$superAdminRole]);
             }
         }
 

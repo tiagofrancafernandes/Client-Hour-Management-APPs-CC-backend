@@ -8,7 +8,7 @@ class StoreWalletRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('wallets.create');
+        return $this->user()->can('wallet.create');
     }
 
     public function rules(): array

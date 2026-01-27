@@ -7,11 +7,16 @@ use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 /**
- * Summary of RolesAndPermissionsSeeder
+ * Roles and Permissions Seeder for Hours Ledger System
+ *
+ * Permission naming convention: namespace.action or namespace.action_modifier
+ * Examples:
+ *   - client.view       → view own/related clients
+ *   - client.view_any   → view all clients (admin)
+ *   - ledger.credit     → add credit entries
+ *
  * @author Tiago França
  * @copyright (c) 2025
- *
- * @suppress PHP0413
  */
 class RolesAndPermissionsSeeder extends Seeder
 {
@@ -25,69 +30,37 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // Create Permissions
         $permissions = [
-            // Account Management
-            'accounts.view',
-            'accounts.create',
-            'accounts.update',
-            'accounts.delete',
-            'accounts.suspend',
-            'accounts.activate',
-
-            // Document
-            'documents.submit',
-            'documents.list',
-            'documents.show',
-
-            // Document Validation
-            'documents.validate',
-            'documents.approve',
-            'documents.reject',
-
-            // Apps Management
-            'apps.view',
-            'apps.create',
-            'apps.update',
-            'apps.delete',
-
-            // Transaction Management
-            'transactions.view',
-            'transactions.create',
-            'transactions.refund',
-            'transactions.cancel',
+            // Client Management
+            'client.view',
+            'client.view_any',
+            'client.create',
+            'client.update',
+            'client.delete',
 
             // Wallet Management
-            'wallets.view',
-            'wallets.create',
-            'wallets.update',
+            'wallet.view',
+            'wallet.view_any',
+            'wallet.create',
+            'wallet.update',
+            'wallet.delete',
 
-            // Financial Operations
-            'financial.view_reports',
-            'financial.manage_fees',
-            'financial.manage_exchange_rates',
-            'financial.approve_withdrawals',
+            // Ledger/Hour Log Operations
+            'ledger.view',
+            'ledger.view_any',
+            'ledger.credit',
+            'ledger.debit',
+            'ledger.adjust',
 
-            // Support/Staff Operations
-            'support.view_tickets',
-            'support.create_tickets',
-            'support.resolve_tickets',
-            'support.view_logs',
+            // Tag Management
+            'tag.view',
+            'tag.view_any',
+            'tag.create',
+            'tag.update',
+            'tag.delete',
 
-            // Webhook Management
-            'webhooks.view',
-            'webhooks.create',
-            'webhooks.update',
-            'webhooks.delete',
-
-            // System Settings
-            'settings.view',
-            'settings.update',
-
-            // Roles and Permissions
-            'roles.view',
-            'roles.create',
-            'roles.update',
-            'roles.delete',
-            'permissions.assign',
+            // Reports
+            'report.view',
+            'report.view_any',
         ];
 
         foreach ($permissions as $permission) {
@@ -101,119 +74,97 @@ class RolesAndPermissionsSeeder extends Seeder
         $superAdmin = Role::firstOrCreate(['name' => 'super_admin'], ['name' => 'super_admin']);
         $superAdmin->syncPermissions(Permission::all());
 
-        // Admin - System administrator (below super_admin)
+        // Admin - Full operational access
         /** @var Role $admin */
         $admin = Role::firstOrCreate(['name' => 'admin'], ['name' => 'admin']);
         $admin->syncPermissions([
-            'accounts.view',
-            'accounts.create',
-            'accounts.update',
-            'accounts.suspend',
-            'accounts.activate',
-            'documents.validate',
-            'documents.approve',
-            'documents.reject',
-            'apps.view',
-            'apps.create',
-            'apps.update',
-            'apps.delete',
-            'transactions.view',
-            'transactions.refund',
-            'transactions.cancel',
-            'wallets.view',
-            'wallets.create',
-            'wallets.update',
-            'financial.view_reports',
-            'financial.approve_withdrawals',
-            'support.view_tickets',
-            'support.create_tickets',
-            'support.resolve_tickets',
-            'support.view_logs',
-            'webhooks.view',
-            'webhooks.create',
-            'webhooks.update',
-            'webhooks.delete',
-            'settings.view',
+            'client.view',
+            'client.view_any',
+            'client.create',
+            'client.update',
+            'client.delete',
+            'wallet.view',
+            'wallet.view_any',
+            'wallet.create',
+            'wallet.update',
+            'wallet.delete',
+            'ledger.view',
+            'ledger.view_any',
+            'ledger.credit',
+            'ledger.debit',
+            'ledger.adjust',
+            'tag.view',
+            'tag.view_any',
+            'tag.create',
+            'tag.update',
+            'tag.delete',
+            'report.view',
+            'report.view_any',
         ]);
 
-        // Manager - Almost admin with reduced permissions
+        // Manager - Can manage clients, wallets, and add credits/debits
         /** @var Role $manager */
         $manager = Role::firstOrCreate(['name' => 'manager'], ['name' => 'manager']);
         $manager->syncPermissions([
-            'accounts.view',
-            'accounts.create',
-            'accounts.update',
-            'documents.validate',
-            'documents.approve',
-            'apps.view',
-            'apps.create',
-            'apps.update',
-            'transactions.view',
-            'transactions.refund',
-            'wallets.view',
-            'wallets.create',
-            'financial.view_reports',
-            'support.view_tickets',
-            'support.create_tickets',
-            'support.resolve_tickets',
-            'support.view_logs',
-            'webhooks.view',
-            'settings.view',
+            'client.view',
+            'client.view_any',
+            'client.create',
+            'client.update',
+            'wallet.view',
+            'wallet.view_any',
+            'wallet.create',
+            'wallet.update',
+            'ledger.view',
+            'ledger.view_any',
+            'ledger.credit',
+            'ledger.debit',
+            'tag.view',
+            'tag.view_any',
+            'tag.create',
+            'report.view',
+            'report.view_any',
         ]);
 
-        // Financial - Financial operations specialist
-        /** @var Role $financial */
-        $financial = Role::firstOrCreate(['name' => 'financial'], ['name' => 'financial']);
-        $financial->syncPermissions([
-            'accounts.view',
-            'transactions.view',
-            'transactions.refund',
-            'transactions.cancel',
-            'wallets.view',
-            'financial.view_reports',
-            'financial.manage_fees',
-            'financial.manage_exchange_rates',
-            'financial.approve_withdrawals',
-            'support.view_logs',
+        // Operator - Can view and add debits (consume hours)
+        /** @var Role $operator */
+        $operator = Role::firstOrCreate(['name' => 'operator'], ['name' => 'operator']);
+        $operator->syncPermissions([
+            'client.view',
+            'client.view_any',
+            'wallet.view',
+            'wallet.view_any',
+            'ledger.view',
+            'ledger.view_any',
+            'ledger.debit',
+            'tag.view',
+            'tag.view_any',
+            'report.view',
         ]);
 
-        // Staff - Support team with specific permissions
-        /** @var Role $staff */
-        $staff = Role::firstOrCreate(['name' => 'staff'], ['name' => 'staff']);
-        $staff->syncPermissions([
-            'accounts.view',
-            'documents.validate',
-            'apps.view',
-            'transactions.view',
-            'wallets.view',
-            'support.view_tickets',
-            'support.create_tickets',
-            'support.resolve_tickets',
-            'support.view_logs',
+        // Viewer - Read-only access
+        /** @var Role $viewer */
+        $viewer = Role::firstOrCreate(['name' => 'viewer'], ['name' => 'viewer']);
+        $viewer->syncPermissions([
+            'client.view',
+            'client.view_any',
+            'wallet.view',
+            'wallet.view_any',
+            'ledger.view',
+            'ledger.view_any',
+            'tag.view',
+            'tag.view_any',
+            'report.view',
         ]);
 
-        // Customer
+        // Customer - Can only view own data
         /** @var Role $customer */
         $customer = Role::firstOrCreate(['name' => 'customer'], ['name' => 'customer']);
         $customer->syncPermissions([
-            'documents.submit',
-            'documents.list',
-            'documents.show',
-            'apps.view',
-            'apps.create',
-            'apps.update',
-            'apps.delete',
-            'transactions.view',
-            'transactions.refund',
-            'transactions.cancel',
-            'wallets.view',
-            'financial.view_reports',
-            'support.view_tickets',
-            'support.create_tickets',
-            'webhooks.view',
-            'webhooks.create',
-            'webhooks.update',
-            'webhooks.delete',
+            'client.view',
+            'wallet.view',
+            'ledger.view',
+            'tag.view',
+            'report.view',
         ]);
     }
 }

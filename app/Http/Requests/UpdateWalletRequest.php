@@ -8,7 +8,7 @@ class UpdateWalletRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('wallets.update');
+        return $this->user()->can('wallet.update');
     }
 
     public function rules(): array

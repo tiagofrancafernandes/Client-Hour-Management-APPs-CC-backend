@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ReportRequest;
 use App\Services\ReportService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response;
 
 class ReportController extends Controller
 {
@@ -16,6 +18,8 @@ class ReportController extends Controller
 
     public function index(ReportRequest $request): JsonResponse
     {
+        $this->checkReportPermission();
+
         $filters = $request->validated();
         $groupBy = $request->input('group_by');
 
@@ -41,6 +45,8 @@ class ReportController extends Controller
 
     public function summary(ReportRequest $request): JsonResponse
     {
+        $this->checkReportPermission();
+
         $filters = $request->validated();
 
         return response()->json($this->reportService->getReportSummary($filters));
@@ -48,6 +54,8 @@ class ReportController extends Controller
 
     public function byWallet(ReportRequest $request): JsonResponse
     {
+        $this->checkReportPermission();
+
         $filters = $request->validated();
 
         return response()->json([
@@ -58,11 +66,22 @@ class ReportController extends Controller
 
     public function byClient(ReportRequest $request): JsonResponse
     {
+        $this->checkReportPermission();
+
         $filters = $request->validated();
 
         return response()->json([
             'summary' => $this->reportService->getReportSummary($filters),
             'data' => $this->reportService->getEntriesGroupedByClient($filters),
         ]);
+    }
+
+    private function checkReportPermission(): void
+    {
+        $user = Auth::user();
+
+        if (! $user || ! $user->can('report.view')) {
+            abort(Response::HTTP_FORBIDDEN, 'You do not have permission to view reports.');
+        }
     }
 }

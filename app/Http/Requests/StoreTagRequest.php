@@ -8,7 +8,7 @@ class StoreTagRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('tags.create');
+        return $this->user()->can('tag.create');
     }
 
     public function rules(): array

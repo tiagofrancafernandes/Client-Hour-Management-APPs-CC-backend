@@ -9,7 +9,7 @@ class UpdateTagRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('tags.update');
+        return $this->user()->can('tag.update');
     }
 
     public function rules(): array

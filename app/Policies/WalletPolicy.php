@@ -9,26 +9,26 @@ class WalletPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->can('wallets.view');
+        return $user->can('wallet.view_any');
     }
 
     public function view(User $user, Wallet $wallet): bool
     {
-        return $user->can('wallets.view');
+        return $user->can('wallet.view');
     }
 
     public function create(User $user): bool
     {
-        return $user->can('wallets.create');
+        return $user->can('wallet.create');
     }
 
     public function update(User $user, Wallet $wallet): bool
     {
-        return $user->can('wallets.update');
+        return $user->can('wallet.update');
     }
 
     public function delete(User $user, Wallet $wallet): bool
     {
-        return $user->can('wallets.delete');
+        return $user->can('wallet.delete');
     }
 }

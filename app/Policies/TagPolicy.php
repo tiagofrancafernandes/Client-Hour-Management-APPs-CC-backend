@@ -9,26 +9,26 @@ class TagPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->can('tags.view');
+        return $user->can('tag.view_any');
     }
 
     public function view(User $user, Tag $tag): bool
     {
-        return $user->can('tags.view');
+        return $user->can('tag.view');
     }
 
     public function create(User $user): bool
     {
-        return $user->can('tags.create');
+        return $user->can('tag.create');
     }
 
     public function update(User $user, Tag $tag): bool
     {
-        return $user->can('tags.update');
+        return $user->can('tag.update');
     }
 
     public function delete(User $user, Tag $tag): bool
     {
-        return $user->can('tags.delete');
+        return $user->can('tag.delete');
     }
 }

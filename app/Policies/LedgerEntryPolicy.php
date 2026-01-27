@@ -9,7 +9,7 @@ class LedgerEntryPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->can('ledger.view');
+        return $user->can('ledger.view_any');
     }
 
     public function view(User $user, LedgerEntry $ledgerEntry): bool

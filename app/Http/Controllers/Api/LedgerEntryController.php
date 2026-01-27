@@ -40,10 +40,13 @@ class LedgerEntryController extends Controller
         $data = $request->validated();
 
         if ($type === 'credit') {
+            $this->authorize('credit', LedgerEntry::class);
             $entry = $this->ledgerService->addCredit($wallet, $data);
         } elseif ($type === 'adjustment') {
+            $this->authorize('adjust', LedgerEntry::class);
             $entry = $this->ledgerService->addAdjustment($wallet, $data);
         } else {
+            $this->authorize('debit', LedgerEntry::class);
             $entry = $this->ledgerService->addDebit($wallet, $data);
         }
 
