@@ -37,5 +37,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/summary', [ReportController::class, 'summary']);
         Route::get('/by-wallet', [ReportController::class, 'byWallet']);
         Route::get('/by-client', [ReportController::class, 'byClient']);
+        Route::get('/export', [ReportController::class, 'export']);
     });
 });

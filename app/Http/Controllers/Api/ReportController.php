@@ -3,16 +3,21 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ReportExportRequest;
 use App\Http\Requests\ReportRequest;
+use App\Services\ReportExportService;
 use App\Services\ReportService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
-use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Response as HttpResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportController extends Controller
 {
     public function __construct(
-        private ReportService $reportService
+        private ReportService $reportService,
+        private ReportExportService $reportExportService
     ) {
     }
 
@@ -76,12 +81,26 @@ class ReportController extends Controller
         ]);
     }
 
+    public function export(ReportExportRequest $request): StreamedResponse|Response
+    {
+        $this->checkReportPermission();
+
+        $filters = $request->validated();
+        $format = $request->input('format', 'excel');
+
+        if ($format === 'pdf') {
+            return $this->reportExportService->exportToPdf($filters);
+        }
+
+        return $this->reportExportService->exportToExcel($filters);
+    }
+
     private function checkReportPermission(): void
     {
         $user = Auth::user();
 
         if (! $user || ! $user->can('report.view')) {
-            abort(Response::HTTP_FORBIDDEN, 'You do not have permission to view reports.');
+            abort(HttpResponse::HTTP_FORBIDDEN, 'You do not have permission to view reports.');
         }
     }
 }

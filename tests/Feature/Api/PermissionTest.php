@@ -222,6 +222,37 @@ class PermissionTest extends TestCase
         $response->assertStatus(200);
     }
 
+    public function testAdminCanExportReportsToExcel(): void
+    {
+        $response = $this->actingAs($this->admin)
+            ->get('/api/reports/export?format=excel');
+
+        $response->assertSuccessful();
+    }
+
+    public function testAdminCanExportReportsToPdf(): void
+    {
+        $response = $this->actingAs($this->admin)
+            ->get('/api/reports/export?format=pdf');
+
+        $response->assertSuccessful();
+    }
+
+    public function testViewerCanExportReports(): void
+    {
+        $response = $this->actingAs($this->viewer)
+            ->get('/api/reports/export?format=excel');
+
+        $response->assertSuccessful();
+    }
+
+    public function testUnauthenticatedCannotExportReports(): void
+    {
+        $response = $this->get('/api/reports/export?format=excel');
+
+        $response->assertUnauthorized();
+    }
+
     // Unauthenticated Tests
 
     public function testUnauthenticatedCannotAccessClients(): void
