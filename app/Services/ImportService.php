@@ -59,6 +59,7 @@ class ImportService
             ->each(function (array $rowData) use ($plan, &$rows, &$rowNumber) {
                 if ($rowNumber === 1) {
                     $rowNumber++;
+
                     return;
                 }
 
@@ -133,6 +134,7 @@ class ImportService
         }
 
         $invalidRows = $plan->rows->where('is_valid', false);
+
         if ($invalidRows->count() > 0) {
             throw new \Exception('Cannot confirm import plan with invalid rows. Please fix or remove them first.');
         }
@@ -323,6 +325,7 @@ class ImportService
         }
 
         $maxSizeInBytes = 10 * 1024 * 1024;
+
         if ($file->getSize() > $maxSizeInBytes) {
             throw new \Exception('File size exceeds 10MB limit.');
         }
@@ -340,6 +343,7 @@ class ImportService
         } else {
             try {
                 $date = \Carbon\Carbon::parse($row->reference_date);
+
                 if ($date->isFuture()) {
                     $errors[] = 'Reference date cannot be in the future.';
                 }
