@@ -5,13 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Spatie\Tags\HasTags;
 
 class Timer extends Model
 {
     use HasFactory;
-    use HasTags;
 
     protected $fillable = [
         'user_id',
@@ -51,6 +50,11 @@ class Timer extends Model
     public function ledgerEntry(): BelongsTo
     {
         return $this->belongsTo(LedgerEntry::class);
+    }
+
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class, 'timer_tag');
     }
 
     public function getTotalSecondsAttribute(): int

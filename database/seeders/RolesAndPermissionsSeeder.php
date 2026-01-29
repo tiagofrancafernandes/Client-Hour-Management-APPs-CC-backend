@@ -58,6 +58,14 @@ class RolesAndPermissionsSeeder extends Seeder
             'tag.update',
             'tag.delete',
 
+            // Timer Management
+            'timer.view',
+            'timer.view_any',
+            'timer.create',
+            'timer.update',
+            'timer.confirm',
+            'timer.delete',
+
             // Reports
             'report.view',
             'report.view_any',
@@ -98,6 +106,12 @@ class RolesAndPermissionsSeeder extends Seeder
             'tag.create',
             'tag.update',
             'tag.delete',
+            'timer.view',
+            'timer.view_any',
+            'timer.create',
+            'timer.update',
+            'timer.confirm',
+            'timer.delete',
             'report.view',
             'report.view_any',
         ]);
@@ -121,6 +135,11 @@ class RolesAndPermissionsSeeder extends Seeder
             'tag.view',
             'tag.view_any',
             'tag.create',
+            'timer.view',
+            'timer.view_any',
+            'timer.create',
+            'timer.update',
+            'timer.confirm',
             'report.view',
             'report.view_any',
         ]);
@@ -138,6 +157,10 @@ class RolesAndPermissionsSeeder extends Seeder
             'ledger.debit',
             'tag.view',
             'tag.view_any',
+            'timer.view',
+            'timer.create',
+            'timer.update',
+            'timer.confirm',
             'report.view',
         ]);
 
@@ -153,6 +176,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'ledger.view_any',
             'tag.view',
             'tag.view_any',
+            'timer.view',
             'report.view',
         ]);
 
@@ -164,6 +188,10 @@ class RolesAndPermissionsSeeder extends Seeder
             'wallet.view',
             'ledger.view',
             'tag.view',
+            'timer.view',
+            'timer.create',
+            'timer.update',
+            'timer.confirm',
             'report.view',
         ]);
     }

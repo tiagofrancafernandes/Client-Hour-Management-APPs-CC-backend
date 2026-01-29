@@ -36,6 +36,6 @@ class TimerCycle extends Model
             return 0;
         }
 
-        return $this->ended_at->diffInSeconds($this->started_at);
+        return $this->started_at->diffInSeconds($this->ended_at);
     }
 }
