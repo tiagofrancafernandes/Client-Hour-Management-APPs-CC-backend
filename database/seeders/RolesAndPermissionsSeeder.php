@@ -66,6 +66,15 @@ class RolesAndPermissionsSeeder extends Seeder
             'timer.confirm',
             'timer.delete',
 
+            // Import Management
+            'import.view',
+            'import.view_any',
+            'import.create',
+            'import.update',
+            'import.confirm',
+            'import.cancel',
+            'import.delete',
+
             // Reports
             'report.view',
             'report.view_any',
@@ -112,6 +121,13 @@ class RolesAndPermissionsSeeder extends Seeder
             'timer.update',
             'timer.confirm',
             'timer.delete',
+            'import.view',
+            'import.view_any',
+            'import.create',
+            'import.update',
+            'import.confirm',
+            'import.cancel',
+            'import.delete',
             'report.view',
             'report.view_any',
         ]);
@@ -140,6 +156,12 @@ class RolesAndPermissionsSeeder extends Seeder
             'timer.create',
             'timer.update',
             'timer.confirm',
+            'import.view',
+            'import.view_any',
+            'import.create',
+            'import.update',
+            'import.confirm',
+            'import.cancel',
             'report.view',
             'report.view_any',
         ]);
@@ -161,6 +183,11 @@ class RolesAndPermissionsSeeder extends Seeder
             'timer.create',
             'timer.update',
             'timer.confirm',
+            'import.view',
+            'import.create',
+            'import.update',
+            'import.confirm',
+            'import.cancel',
             'report.view',
         ]);
 
@@ -177,6 +204,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'tag.view',
             'tag.view_any',
             'timer.view',
+            'import.view',
             'report.view',
         ]);
 
@@ -192,6 +220,11 @@ class RolesAndPermissionsSeeder extends Seeder
             'timer.create',
             'timer.update',
             'timer.confirm',
+            'import.view',
+            'import.create',
+            'import.update',
+            'import.confirm',
+            'import.cancel',
             'report.view',
         ]);
     }

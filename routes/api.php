@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ClientController;
+use App\Http\Controllers\Api\ImportPlanController;
 use App\Http\Controllers\Api\LedgerEntryController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\TagController;
@@ -47,6 +48,20 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/{timer}/cancel', [TimerController::class, 'cancel']);
         Route::post('/{timer}/confirm', [TimerController::class, 'confirm']);
         Route::put('/{timer}/cycles', [TimerController::class, 'updateCycles']);
+    });
+
+    Route::prefix('import-plans')->group(function () {
+        Route::get('/template/download', [ImportPlanController::class, 'downloadTemplate']);
+        Route::get('/', [ImportPlanController::class, 'index']);
+        Route::post('/', [ImportPlanController::class, 'store']);
+        Route::get('/{importPlan}', [ImportPlanController::class, 'show']);
+
+        Route::post('/{importPlan}/confirm', [ImportPlanController::class, 'confirm']);
+        Route::post('/{importPlan}/cancel', [ImportPlanController::class, 'cancel']);
+
+        Route::post('/{importPlan}/rows', [ImportPlanController::class, 'addRow']);
+        Route::put('/rows/{importPlanRow}', [ImportPlanController::class, 'updateRow']);
+        Route::delete('/rows/{importPlanRow}', [ImportPlanController::class, 'deleteRow']);
     });
 
     Route::prefix('reports')->group(function () {
