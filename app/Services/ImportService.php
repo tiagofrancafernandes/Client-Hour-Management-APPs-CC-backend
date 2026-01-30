@@ -287,12 +287,26 @@ class ImportService
                 'description' => 'Example description',
                 'tags' => 'tag1,tag2',
             ],
+            [
+                'reference_date' => now()->subDays(1)->format('Y-m-d'),
+                'hours' => -1.5,
+                'title' => 'Another Task',
+                'description' => 'Another example with negative hours (debit)',
+                'tags' => 'tag3',
+            ],
+            [
+                'reference_date' => now()->subDays(2)->format('Y-m-d'),
+                'hours' => 3,
+                'title' => 'Third Task',
+                'description' => '',
+                'tags' => '',
+            ],
         ];
 
         $fileName = 'import_template_' . now()->format('Y_m_d_His') . '.' . $format;
 
-        return response()->streamDownload(function () use ($headers, $exampleData) {
-            $tempFile = tempnam(sys_get_temp_dir(), 'import_template');
+        return response()->streamDownload(function () use ($headers, $exampleData, $format) {
+            $tempFile = tempnam(sys_get_temp_dir(), 'import_template') . '.' . $format;
 
             $writer = SimpleExcelWriter::create($tempFile);
 
