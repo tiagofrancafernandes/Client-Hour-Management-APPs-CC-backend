@@ -44,6 +44,9 @@ return [
     'exposed_headers' => [
         'Content-Disposition',
         'X-Filename',
+        'Content-Type',
+        'Response-Type',
+        'X-Response-Type',
     ],
 
     'max_age' => 0,

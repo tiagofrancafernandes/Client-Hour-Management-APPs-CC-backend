@@ -66,7 +66,7 @@ class ImportService
                 $row = ImportPlanRow::create([
                     'import_plan_id' => $plan->id,
                     'row_number' => $rowNumber,
-                    'reference_date' => $rowData['reference_date'] ?? null,
+                    'reference_date' => $rowData['reference_date'] ?? now(),
                     'hours' => $rowData['hours'] ?? 0,
                     'title' => $rowData['title'] ?? '',
                     'description' => $rowData['description'] ?? null,
@@ -310,7 +310,7 @@ class ImportService
 
             $writer = SimpleExcelWriter::create($tempFile);
 
-            $writer->addRow($headers);
+            $writer->addHeader($headers);
 
             foreach ($exampleData as $row) {
                 $writer->addRow($row);

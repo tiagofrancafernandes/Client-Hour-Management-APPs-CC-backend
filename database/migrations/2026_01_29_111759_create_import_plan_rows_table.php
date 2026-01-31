@@ -11,7 +11,7 @@ return new class() extends Migration {
             $table->id();
             $table->foreignId('import_plan_id')->constrained()->cascadeOnDelete();
             $table->integer('row_number');
-            $table->date('reference_date');
+            $table->date('reference_date')->index()->useCurrent();
             $table->decimal('hours', 8, 2);
             $table->string('title');
             $table->text('description')->nullable();
