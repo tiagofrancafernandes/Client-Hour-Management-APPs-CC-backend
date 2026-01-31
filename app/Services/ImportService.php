@@ -316,6 +316,8 @@ class ImportService
                 $writer->addRow($row);
             }
 
+            $writer->close();
+
             echo file_get_contents($tempFile);
 
             unlink($tempFile);
