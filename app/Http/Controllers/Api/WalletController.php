@@ -34,6 +34,9 @@ class WalletController extends Controller
             ->orderBy('name')
             ->paginate($request->input('per_page', 15));
 
+        // Hide internal_note for users without permission
+        $wallets->getCollection()->transform(fn ($w) => $w->hideInternalNoteIfNotPermitted(auth()->user()));
+
         return response()->json($wallets);
     }
 
@@ -48,6 +51,9 @@ class WalletController extends Controller
     {
         $this->authorize('view', $wallet);
 
+        // Filter sensitive fields based on permission
+        $wallet->hideInternalNoteIfNotPermitted(auth()->user());
+
         $data = $wallet->load('client')->toArray();
         $data['balance'] = $this->balanceCalculator->getWalletBalance($wallet);
 
@@ -56,7 +62,21 @@ class WalletController extends Controller
 
     public function update(UpdateWalletRequest $request, Wallet $wallet): JsonResponse
     {
-        $wallet->update($request->validated());
+        $validated = $request->validated();
+
+        // Only allow updating internal_note if user has permission
+        if ($request->has('internal_note')) {
+            if (!auth()->user()->hasPermissionTo('wallet.view_internal_note')) {
+                abort(403, 'Unauthorized to modify internal_note');
+            }
+
+            $validated['internal_note'] = $request->input('internal_note');
+        }
+
+        $wallet->update($validated);
+
+        // Ensure sensitive fields are filtered in response
+        $wallet->hideInternalNoteIfNotPermitted(auth()->user());
 
         return response()->json($wallet->load('client'));
     }

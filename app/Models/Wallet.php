@@ -39,4 +39,24 @@ class Wallet extends Model
     {
         return $this->hasMany(CreditPurchase::class);
     }
+
+    /**
+     * Remove internal_note attribute from model when user cannot view it.
+     */
+    public function hideInternalNoteIfNotPermitted(User $user): self
+    {
+        if (!$user || !$user->hasPermissionTo('wallet.view_internal_note')) {
+            // Ensure attribute is not present when serializing
+            if (array_key_exists('internal_note', $this->attributes)) {
+                unset($this->attributes['internal_note']);
+            }
+        }
+
+        return $this;
+    }
+
+    public function canViewInternalNote(User $user): bool
+    {
+        return $user && $user->hasPermissionTo('wallet.view_internal_note');
+    }
 }
