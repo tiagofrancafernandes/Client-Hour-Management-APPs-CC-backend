@@ -16,6 +16,7 @@ class Wallet extends Model
         'name',
         'description',
         'hourly_rate_reference',
+        'currency_code',
     ];
 
     protected $casts = [
