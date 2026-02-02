@@ -17,6 +17,8 @@ class Wallet extends Model
         'description',
         'hourly_rate_reference',
         'currency_code',
+        'internal_note',
+        'credit_purchase_allowed',
     ];
 
     protected $casts = [
@@ -31,5 +33,10 @@ class Wallet extends Model
     public function ledgerEntries(): HasMany
     {
         return $this->hasMany(LedgerEntry::class);
+    }
+
+    public function creditPurchases(): HasMany
+    {
+        return $this->hasMany(CreditPurchase::class);
     }
 }

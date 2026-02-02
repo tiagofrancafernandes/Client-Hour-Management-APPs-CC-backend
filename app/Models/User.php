@@ -26,6 +26,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'customer_id',
     ];
 
     /**
@@ -49,5 +50,20 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function client()
+    {
+        return $this->belongsTo(Client::class, 'customer_id');
+    }
+
+    public function creditPurchases()
+    {
+        return $this->hasMany(CreditPurchase::class, 'customer_id');
+    }
+
+    public function creditPurchasePayments()
+    {
+        return $this->hasMany(CreditPurchasePayment::class, 'receipt_approved_by');
     }
 }
