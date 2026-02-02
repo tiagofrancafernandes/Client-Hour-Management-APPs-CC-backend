@@ -61,12 +61,10 @@ class ReportService
     {
         $query = $this->getFilteredEntries($filters);
 
-        $entries = $query->get();
-
-        $totalCredits = $entries->where('hours', '>', 0)->sum('hours');
-        $totalDebits = $entries->where('hours', '<', 0)->sum('hours');
+        $totalCredits = (clone $query)->where('hours', '>', 0)->sum('hours') ?? 0;
+        $totalDebits = (clone $query)->where('hours', '<', 0)->sum('hours') ?? 0;
         $netBalance = $totalCredits + $totalDebits;
-        $entryCount = $entries->count();
+        $entryCount = (clone $query)->count();
 
         return [
             'total_credits' => number_format((float) $totalCredits, 2, '.', ''),
@@ -78,44 +76,61 @@ class ReportService
 
     public function getEntriesGroupedByWallet(array $filters): Collection
     {
-        $entries = $this->getFilteredEntries($filters)->get();
+        $query = $this->getFilteredEntries($filters);
 
-        return $entries->groupBy('wallet_id')->map(function ($walletEntries) {
-            $wallet = $walletEntries->first()->wallet;
+        $results = $query
+            ->selectRaw('
+                ledger_entries.wallet_id,
+                SUM(CASE WHEN ledger_entries.hours > 0 THEN ledger_entries.hours ELSE 0 END) as total_credits,
+                SUM(CASE WHEN ledger_entries.hours < 0 THEN ledger_entries.hours ELSE 0 END) as total_debits,
+                SUM(ledger_entries.hours) as net_balance,
+                COUNT(*) as entry_count
+            ')
+            ->groupBy('ledger_entries.wallet_id')
+            ->get();
 
-            $totalCredits = $walletEntries->where('hours', '>', 0)->sum('hours');
-            $totalDebits = $walletEntries->where('hours', '<', 0)->sum('hours');
+        return $results->map(function ($result) {
+            $wallet = \App\Models\Wallet::with('client')->find($result->wallet_id);
 
             return [
-                'wallet_id' => $wallet->id,
+                'wallet_id' => $result->wallet_id,
                 'wallet_name' => $wallet->name,
                 'client_name' => $wallet->client->name,
-                'total_credits' => number_format((float) $totalCredits, 2, '.', ''),
-                'total_debits' => number_format((float) $totalDebits, 2, '.', ''),
-                'net_balance' => number_format((float) ($totalCredits + $totalDebits), 2, '.', ''),
-                'entry_count' => $walletEntries->count(),
+                'total_credits' => number_format((float) $result->total_credits, 2, '.', ''),
+                'total_debits' => number_format((float) $result->total_debits, 2, '.', ''),
+                'net_balance' => number_format((float) $result->net_balance, 2, '.', ''),
+                'entry_count' => $result->entry_count,
             ];
-        })->values();
+        });
     }
 
     public function getEntriesGroupedByClient(array $filters): Collection
     {
-        $entries = $this->getFilteredEntries($filters)->get();
+        $query = $this->getFilteredEntries($filters);
 
-        return $entries->groupBy(fn ($entry) => $entry->wallet->client_id)->map(function ($clientEntries) {
-            $client = $clientEntries->first()->wallet->client;
+        $results = $query
+            ->join('wallets', 'ledger_entries.wallet_id', '=', 'wallets.id')
+            ->selectRaw('
+                wallets.client_id,
+                SUM(CASE WHEN ledger_entries.hours > 0 THEN ledger_entries.hours ELSE 0 END) as total_credits,
+                SUM(CASE WHEN ledger_entries.hours < 0 THEN ledger_entries.hours ELSE 0 END) as total_debits,
+                SUM(ledger_entries.hours) as net_balance,
+                COUNT(*) as entry_count
+            ')
+            ->groupBy('wallets.client_id')
+            ->get();
 
-            $totalCredits = $clientEntries->where('hours', '>', 0)->sum('hours');
-            $totalDebits = $clientEntries->where('hours', '<', 0)->sum('hours');
+        return $results->map(function ($result) {
+            $client = \App\Models\Client::find($result->client_id);
 
             return [
-                'client_id' => $client->id,
+                'client_id' => $result->client_id,
                 'client_name' => $client->name,
-                'total_credits' => number_format((float) $totalCredits, 2, '.', ''),
-                'total_debits' => number_format((float) $totalDebits, 2, '.', ''),
-                'net_balance' => number_format((float) ($totalCredits + $totalDebits), 2, '.', ''),
-                'entry_count' => $clientEntries->count(),
+                'total_credits' => number_format((float) $result->total_credits, 2, '.', ''),
+                'total_debits' => number_format((float) $result->total_debits, 2, '.', ''),
+                'net_balance' => number_format((float) $result->net_balance, 2, '.', ''),
+                'entry_count' => $result->entry_count,
             ];
-        })->values();
+        });
     }
 }
