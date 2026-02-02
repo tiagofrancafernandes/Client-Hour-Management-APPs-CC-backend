@@ -18,6 +18,14 @@ class DevDammyDataSeeder extends Seeder
      */
     public function run(): void
     {
+        dump(config('dev-plug'));
+
+        if (config('dev-plug.is_on_loop') && !config('dev-plug.to_force_action')) {
+            $this->command->info('On loop. Returning on ' . __METHOD__);
+
+            return;
+        }
+
         if (app()->isProduction()) {
             return;
         }
