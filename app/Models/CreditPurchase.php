@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CreditPurchaseStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -20,6 +21,7 @@ class CreditPurchase extends Model
     protected $casts = [
         'total_hours' => 'decimal:2',
         'total_price' => 'decimal:2',
+        'status' => CreditPurchaseStatus::class,
     ];
 
     public function wallet(): BelongsTo

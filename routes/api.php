@@ -2,8 +2,12 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ClientController;
+use App\Http\Controllers\Api\CreditPurchaseController;
 use App\Http\Controllers\Api\ImportPlanController;
 use App\Http\Controllers\Api\LedgerEntryController;
+use App\Http\Controllers\Api\PaymentApprovalController;
+use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\PaymentReceiptController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\Api\TimerController;
@@ -70,5 +74,24 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/by-wallet', [ReportController::class, 'byWallet']);
         Route::get('/by-client', [ReportController::class, 'byClient']);
         Route::get('/export', [ReportController::class, 'export']);
+    });
+
+    // Credit Purchase Routes
+    Route::prefix('credit-purchases')->group(function () {
+        Route::get('/', [CreditPurchaseController::class, 'index']);
+        Route::post('/', [CreditPurchaseController::class, 'store']);
+        Route::get('/{creditPurchase}', [CreditPurchaseController::class, 'show']);
+
+        // Payment routes
+        Route::post('/{creditPurchase}/payments', [PaymentController::class, 'store']);
+        Route::post('/{creditPurchase}/payments/{creditPurchasePayment}/upload-receipt', [PaymentReceiptController::class, 'store']);
+        Route::get('/payments/{creditPurchasePayment}/receipt-url', [PaymentReceiptController::class, 'getUrl']);
+    });
+
+    // Payment Approval Routes (Admin only)
+    Route::prefix('payments')->group(function () {
+        Route::get('/pending', [PaymentApprovalController::class, 'pending']);
+        Route::post('/{creditPurchasePayment}/approve', [PaymentApprovalController::class, 'approve']);
+        Route::post('/{creditPurchasePayment}/reject', [PaymentApprovalController::class, 'reject']);
     });
 });
