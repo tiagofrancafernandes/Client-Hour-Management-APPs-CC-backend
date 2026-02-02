@@ -11,7 +11,7 @@ use NumberFormatter;
  * - Human-readable labels
  * - Currency symbols
  * - Locale-based number formatting
- * - Form options for UI layers
+ * - UI helpers for form inputs
  */
 enum CurrencyCode: string
 {
@@ -33,8 +33,13 @@ enum CurrencyCode: string
      * @return string
      *
      * @example
-     * CurrencyCode::USD->label(); // "US Dollar"
-     * CurrencyCode::BRL->label(); // "Brazilian Real"
+     * ```
+     * CurrencyCode::USD->label();
+     * "US Dollar"
+     *
+     * CurrencyCode::BRL->label();
+     * "Brazilian Real"
+     * ```
      */
     public function label(): string
     {
@@ -59,8 +64,13 @@ enum CurrencyCode: string
      * @return string
      *
      * @example
-     * CurrencyCode::USD->symbol(); // "$"
-     * CurrencyCode::BRL->symbol(); // "R$"
+     * ```
+     * CurrencyCode::USD->symbol();
+     * "$"
+     *
+     * CurrencyCode::BRL->symbol();
+     * "R$"
+     * ```
      */
     public function symbol(): string
     {
@@ -85,8 +95,13 @@ enum CurrencyCode: string
      * @return string
      *
      * @example
-     * CurrencyCode::USD->locale(); // "en_US"
-     * CurrencyCode::BRL->locale(); // "pt_BR"
+     * ```
+     * CurrencyCode::USD->locale();
+     * "en_US"
+     *
+     * CurrencyCode::BRL->locale();
+     * "pt_BR"
+     * ```
      */
     public function locale(): string
     {
@@ -108,21 +123,23 @@ enum CurrencyCode: string
     /**
      * Format a numeric amount according to the currency locale.
      *
-     * @param float|int $amount       The numeric value to be formatted.
-     * @param bool      $withSymbol   Whether to include the currency symbol.
-     * @param int       $decimals     Number of decimal places.
+     * @param float|int $amount     The numeric value to be formatted.
+     * @param bool      $withSymbol Whether to include the currency symbol.
+     * @param int       $decimals   Number of decimal places.
      *
      * @return string
      *
      * @example
+     * ```
      * CurrencyCode::USD->format(1234.56);
-     * // "$1,234.56"
+     * "$1,234.56"
      *
      * CurrencyCode::BRL->format(1234.56);
-     * // "R$ 1.234,56"
+     * "R$ 1.234,56"
      *
      * CurrencyCode::BRL->format(1234.56, false);
-     * // "1.234,56"
+     * "1.234,56"
+     * ```
      */
     public function format(
         float|int $amount,
@@ -156,12 +173,14 @@ enum CurrencyCode: string
      * @return array<string, string>
      *
      * @example
+     * ```
      * CurrencyCode::labels();
-     * // [
-     * //   "USD" => "US Dollar",
-     * //   "EUR" => "Euro",
-     * //   ...
-     * // ]
+     * [
+     *   "USD" => "US Dollar",
+     *   "EUR" => "Euro",
+     *   ...
+     * ]
+     * ```
      */
     public static function labels(): array
     {
@@ -180,11 +199,13 @@ enum CurrencyCode: string
      * @return array<int, array{value: string, label: string, symbol: string}>
      *
      * @example
+     * ```
      * CurrencyCode::toSelectOptions();
-     * // [
-     * //   ["value" => "USD", "label" => "US Dollar", "symbol" => "$"],
-     * //   ["value" => "BRL", "label" => "Brazilian Real", "symbol" => "R$"],
-     * // ]
+     * [
+     *   ["value" => "USD", "label" => "US Dollar", "symbol" => "$"],
+     *   ["value" => "BRL", "label" => "Brazilian Real", "symbol" => "R$"],
+     * ]
+     * ```
      */
     public static function toSelectOptions(): array
     {
