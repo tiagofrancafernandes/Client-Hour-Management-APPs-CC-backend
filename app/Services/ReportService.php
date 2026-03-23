@@ -54,13 +54,15 @@ class ReportService
             }
         }
 
-        return $query->orderBy('reference_date', 'desc')
-            ->orderBy('created_at', 'desc');
+        return $query;
     }
 
     public function getPaginatedReport(array $filters, int $perPage = 15): LengthAwarePaginator
     {
-        return $this->getFilteredEntries($filters)->paginate($perPage);
+        return $this->getFilteredEntries($filters)
+            ->orderBy('reference_date', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
     }
 
     public function getReportSummary(array $filters): array
