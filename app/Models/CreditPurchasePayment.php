@@ -17,12 +17,14 @@ class CreditPurchasePayment extends Model
         'receipt_approved_by',
         'receipt_approved_at',
         'notes',
+        'expires_at',
     ];
 
     protected $casts = [
         'payment_method' => PaymentMethod::class,
         'payment_status' => PaymentStatus::class,
         'receipt_approved_at' => 'datetime',
+        'expires_at' => 'datetime',
     ];
 
     public function creditPurchase(): BelongsTo
@@ -33,5 +35,14 @@ class CreditPurchasePayment extends Model
     public function approvedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'receipt_approved_by');
+    }
+
+    public function isExpired(): bool
+    {
+        if ($this->expires_at === null) {
+            return false;
+        }
+
+        return $this->expires_at->isPast();
     }
 }

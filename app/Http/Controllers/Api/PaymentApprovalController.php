@@ -13,26 +13,29 @@ use Illuminate\Http\Request;
 class PaymentApprovalController extends Controller
 {
     /**
-     * Approve a payment (PIX Offline)
+     * Approve a payment
      * POST /api/payments/{id}/approve
      */
     public function approve(Request $request, CreditPurchasePayment $payment): JsonResponse
     {
         $user = auth()->user();
 
-        // Verificar permissão de admin
         if (! $user->hasPermissionTo('credit_purchase.approve')) {
-            return response()->json([
-                'message' => 'Unauthorized',
-            ], 403);
+            return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // Validar
+        if ($payment->isExpired()) {
+            return response()->json(['message' => 'Payment has expired and cannot be approved'], 422);
+        }
+
+        if ($payment->payment_status !== PaymentStatus::PENDING) {
+            return response()->json(['message' => 'Payment is not pending'], 422);
+        }
+
         $request->validate([
             'notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        // Atualizar pagamento
         $payment->update([
             'payment_status' => PaymentStatus::APPROVED,
             'receipt_approved_by' => $user->id,
@@ -40,11 +43,9 @@ class PaymentApprovalController extends Controller
             'notes' => $request->input('notes'),
         ]);
 
-        // Aplicar crédito na wallet (criar LedgerEntry)
         $creditPurchase = $payment->creditPurchase;
         $this->applyCreditToWallet($creditPurchase);
 
-        // Atualizar status da compra
         $creditPurchase->update([
             'status' => CreditPurchaseStatus::APPROVED,
         ]);
@@ -63,19 +64,18 @@ class PaymentApprovalController extends Controller
     {
         $user = auth()->user();
 
-        // Verificar permissão
         if (! $user->hasPermissionTo('credit_purchase.approve')) {
-            return response()->json([
-                'message' => 'Unauthorized',
-            ], 403);
+            return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // Validar
+        if ($payment->payment_status !== PaymentStatus::PENDING) {
+            return response()->json(['message' => 'Payment is not pending'], 422);
+        }
+
         $request->validate([
             'notes' => ['required', 'string', 'max:1000'],
         ]);
 
-        // Atualizar pagamento
         $payment->update([
             'payment_status' => PaymentStatus::REJECTED,
             'receipt_approved_by' => $user->id,
@@ -83,7 +83,6 @@ class PaymentApprovalController extends Controller
             'notes' => $request->input('notes'),
         ]);
 
-        // Atualizar status da compra
         $creditPurchase = $payment->creditPurchase;
         $creditPurchase->update([
             'status' => CreditPurchaseStatus::REJECTED,
@@ -103,14 +102,15 @@ class PaymentApprovalController extends Controller
     {
         $user = auth()->user();
 
-        // Verificar permissão
         if (! $user->hasPermissionTo('credit_purchase.approve')) {
-            return response()->json([
-                'message' => 'Unauthorized',
-            ], 403);
+            return response()->json(['message' => 'Unauthorized'], 403);
         }
 
         $payments = CreditPurchasePayment::where('payment_status', PaymentStatus::PENDING)
+            ->where(function ($query) {
+                $query->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
             ->with(['creditPurchase.wallet', 'creditPurchase.customer'])
             ->latest()
             ->paginate(15);
@@ -118,27 +118,16 @@ class PaymentApprovalController extends Controller
         return response()->json($payments);
     }
 
-    /**
-     * Aplicar crédito na wallet do cliente
-     */
     private function applyCreditToWallet(CreditPurchase $creditPurchase): void
     {
-        // Importar o serviço de ledger
         $ledgerService = app('App\Services\LedgerService');
-
         $wallet = $creditPurchase->wallet;
-        $data = [
-            'title' => "Credit Purchase - {$creditPurchase->total_hours}h",
-            'description' => "Hours purchased and approved",
-            'reference_date' => now()->toDateString(),
-        ];
 
-        // Criar entrada de crédito
         $ledgerService->addCredit($wallet, [
             'hours' => $creditPurchase->total_hours,
-            'title' => $data['title'],
-            'description' => $data['description'],
-            'reference_date' => $data['reference_date'],
+            'title' => "Credit Purchase - {$creditPurchase->total_hours}h",
+            'description' => 'Hours purchased and approved',
+            'reference_date' => now()->toDateString(),
         ]);
     }
 }

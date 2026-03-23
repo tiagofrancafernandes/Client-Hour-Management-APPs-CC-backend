@@ -93,6 +93,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
         // Payment routes
         Route::post('/{creditPurchase}/payments', [PaymentController::class, 'store']);
+        Route::put('/{creditPurchase}/payments/{creditPurchasePayment}/set-method', [PaymentController::class, 'setMethod']);
         Route::post('/{creditPurchase}/payments/{creditPurchasePayment}/upload-receipt', [PaymentReceiptController::class, 'store']);
         Route::get('/payments/{creditPurchasePayment}/receipt-url', [PaymentReceiptController::class, 'getUrl']);
     });
