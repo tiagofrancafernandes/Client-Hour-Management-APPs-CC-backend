@@ -1,0 +1,34 @@
+<?php
+
+namespace App\PaymentMethods;
+
+class PixOfflinePaymentMethod extends AbstractPaymentMethod
+{
+    public function key(): string
+    {
+        return 'pix_offline';
+    }
+
+    public function label(): string
+    {
+        return 'PIX Offline';
+    }
+
+    public function isOffline(): bool
+    {
+        return true;
+    }
+
+    public function currency(): ?string
+    {
+        return 'BRL';
+    }
+
+    /**
+     * Expires in 48 hours after method is assigned.
+     */
+    public function expiresTime(): string|int|null
+    {
+        return '+48 hours';
+    }
+}

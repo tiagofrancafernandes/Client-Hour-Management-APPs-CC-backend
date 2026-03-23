@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\PaymentMethod;
+use App\Casts\PaymentMethodCast;
 use App\Enums\PaymentStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -21,7 +21,7 @@ class CreditPurchasePayment extends Model
     ];
 
     protected $casts = [
-        'payment_method' => PaymentMethod::class,
+        'payment_method' => PaymentMethodCast::class,
         'payment_status' => PaymentStatus::class,
         'receipt_approved_at' => 'datetime',
         'expires_at' => 'datetime',

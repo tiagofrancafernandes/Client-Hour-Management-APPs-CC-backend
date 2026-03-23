@@ -13,8 +13,8 @@ return new class() extends Migration {
         Schema::create('credit_purchase_payments', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('credit_purchase_id');
-            $table->enum('payment_method', ['pix_offline', 'bank_transfer'])->default('bank_transfer');
-            $table->enum('payment_status', ['pending', 'approved', 'rejected', 'completed'])->default('pending');
+            $table->string('payment_method')->nullable()->default(null);
+            $table->string('payment_status')->default('pending');
             $table->string('pix_receipt_path')->nullable();
             $table->unsignedBigInteger('receipt_approved_by')->nullable();
             $table->timestamp('receipt_approved_at')->nullable();

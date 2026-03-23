@@ -17,7 +17,7 @@ return new class() extends Migration {
             $table->decimal('total_hours', 8, 2);
             $table->decimal('total_price', 10, 2);
             $table->string('currency_code', 3);
-            $table->enum('status', ['pending', 'approved', 'rejected', 'cancelled'])->default('pending');
+            $table->string('status')->default('pending');
             $table->foreign('wallet_id')->references('id')->on('wallets')->onDelete('cascade');
             $table->foreign('customer_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();
