@@ -14,7 +14,18 @@ class WalletPolicy
 
     public function view(User $user, Wallet $wallet): bool
     {
-        return $user->can('wallet.view');
+        $canView = $user->can('wallet.view');
+
+        if (! $canView) {
+            return false;
+        }
+
+        // Verify ownership for customers
+        if ($user->hasRole('customer')) {
+            return $wallet->client->isUserCustomer($user);
+        }
+
+        return true;
     }
 
     public function create(User $user): bool

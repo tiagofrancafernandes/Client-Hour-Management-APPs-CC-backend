@@ -1,4 +1,5 @@
 # Universal Code Style Rules
+
 Version: 1.0
 
 Audience: Humans & AI Code Assistants  
@@ -67,11 +68,13 @@ Hidden logic is forbidden.
 All control structures must use braces.
 
 ❌ Wrong
+
 ```js
 if (true) return;
 ```
 
 ✅ Correct
+
 ```js
 if (true) {
     return;
@@ -89,11 +92,13 @@ Applies to:
 - try / catch
 
 ❌ Wrong
+
 ```js
 if (user) process(user);
 ```
 
 ✅ Correct
+
 ```js
 if (user) {
     process(user);
@@ -105,6 +110,7 @@ if (user) {
 ### 3.3 Else-less Pattern
 
 ❌ Wrong
+
 ```js
 if (!user) {
     return null;
@@ -114,6 +120,7 @@ if (!user) {
 ```
 
 ✅ Correct
+
 ```js
 if (!user) {
     return null;
@@ -129,6 +136,7 @@ return user.name;
 ### 4.1 Validate Early
 
 ❌ Wrong
+
 ```js
 function save(data) {
     process(data);
@@ -140,6 +148,7 @@ function save(data) {
 ```
 
 ✅ Correct
+
 ```js
 function save(data) {
     if (!data) {
@@ -157,6 +166,7 @@ function save(data) {
 ### 4.2 Avoid Deep Nesting
 
 ❌ Wrong
+
 ```js
 if (a) {
     if (b) {
@@ -168,6 +178,7 @@ if (a) {
 ```
 
 ✅ Correct
+
 ```js
 if (!a) {
     return;
@@ -193,11 +204,13 @@ run();
 Avoid function-scoped or ambiguous variables.
 
 ❌ Wrong
+
 ```js
 var foo = 'value';
 ```
 
 ✅ Correct
+
 ```js
 let foo = 'value';
 ```
@@ -207,6 +220,7 @@ let foo = 'value';
 ### 5.2 No Function-Scoped Variables
 
 ❌ Wrong
+
 ```js
 function example() {
     var bar = 'value';
@@ -214,6 +228,7 @@ function example() {
 ```
 
 ✅ Correct
+
 ```js
 function example() {
     let bar = 'value';
@@ -227,6 +242,7 @@ function example() {
 ### 6.1 Loop Counters Must Be Block-Scoped
 
 ❌ Wrong
+
 ```js
 for (var i = 0; i < 10; i++) {
     log(i);
@@ -234,6 +250,7 @@ for (var i = 0; i < 10; i++) {
 ```
 
 ✅ Correct
+
 ```js
 for (let i = 0; i < 10; i++) {
     log(i);
@@ -245,6 +262,7 @@ for (let i = 0; i < 10; i++) {
 ### 6.2 Iteration Variables Must Be Block-Scoped
 
 ❌ Wrong
+
 ```js
 for (var key in object) {
     log(key);
@@ -252,6 +270,7 @@ for (var key in object) {
 ```
 
 ✅ Correct
+
 ```js
 for (let key in object) {
     log(key);
@@ -265,6 +284,7 @@ for (let key in object) {
 ### 7.1 Blank Line Between Declarations and Control Flow
 
 ❌ Wrong
+
 ```js
 let key = 'value';
 if (true) {
@@ -273,6 +293,7 @@ if (true) {
 ```
 
 ✅ Correct
+
 ```js
 let key = 'value';
 
@@ -298,11 +319,13 @@ Separate concepts with blank lines.
 ### 8.1 Names Must Describe Intent
 
 ❌ Wrong
+
 ```js
 const d = getData();
 ```
 
 ✅ Correct
+
 ```js
 const userProfile = fetchUserProfile();
 ```
@@ -312,13 +335,17 @@ const userProfile = fetchUserProfile();
 ### 8.2 Boolean Names Must Read as Questions
 
 ❌ Wrong
+
 ```js
-if (user.active) {}
+if (user.active) {
+}
 ```
 
 ✅ Correct
+
 ```js
-if (user.isActive) {}
+if (user.isActive) {
+}
 ```
 
 ---
@@ -335,6 +362,7 @@ if (user.isActive) {}
 ### 9.2 Prefer Small, Composable Functions
 
 ❌ Wrong
+
 ```js
 function handle(req) {
     validate(req);
@@ -345,6 +373,7 @@ function handle(req) {
 ```
 
 ✅ Correct
+
 ```js
 function handle(req) {
     if (!isValid(req)) {
@@ -366,12 +395,14 @@ function handle(req) {
 ### 10.1 Code Explains How, Comments Explain Why
 
 ❌ Wrong
+
 ```js
 // increment counter
 i++;
 ```
 
 ✅ Correct
+
 ```js
 // Early return avoids unnecessary database calls
 if (!user.isActive) {
@@ -386,6 +417,7 @@ if (!user.isActive) {
 ### 11.1 Never Ignore Errors
 
 ❌ Wrong
+
 ```js
 try {
     run();
@@ -393,6 +425,7 @@ try {
 ```
 
 ✅ Correct
+
 ```js
 try {
     run();

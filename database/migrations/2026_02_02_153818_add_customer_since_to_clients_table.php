@@ -10,12 +10,8 @@ return new class() extends Migration {
      */
     public function up(): void
     {
-        Schema::create('timer_cycles', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('timer_id')->constrained()->cascadeOnDelete();
-            $table->timestamp('started_at');
-            $table->timestamp('ended_at')->nullable();
-            $table->timestamps();
+        Schema::table('clients', function (Blueprint $table) {
+            $table->date('customer_since')->nullable()->after('notes');
         });
     }
 
@@ -24,6 +20,8 @@ return new class() extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('timer_cycles');
+        Schema::table('clients', function (Blueprint $table) {
+            $table->dropColumn('customer_since');
+        });
     }
 };

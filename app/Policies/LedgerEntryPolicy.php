@@ -14,7 +14,18 @@ class LedgerEntryPolicy
 
     public function view(User $user, LedgerEntry $ledgerEntry): bool
     {
-        return $user->can('ledger.view');
+        $canView = $user->can('ledger.view');
+
+        if (! $canView) {
+            return false;
+        }
+
+        // Verify ownership for customers
+        if ($user->hasRole('customer')) {
+            return $ledgerEntry->wallet->client->isUserCustomer($user);
+        }
+
+        return true;
     }
 
     public function credit(User $user): bool

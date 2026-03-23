@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -58,5 +59,19 @@ class Wallet extends Model
     public function canViewInternalNote(User $user): bool
     {
         return $user && $user->hasPermissionTo('wallet.view_internal_note');
+    }
+
+    public function scopeForCustomer(Builder $query, User $user): Builder
+    {
+        if (!$user || !$user->customer_id) {
+            return $query->whereRaw('false');
+        }
+
+        return $query->where('client_id', $user->customer_id);
+    }
+
+    public function canAccessAsCustomer(User $user): bool
+    {
+        return $this->client_id === $user->customer_id;
     }
 }

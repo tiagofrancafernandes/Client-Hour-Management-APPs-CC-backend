@@ -14,10 +14,16 @@ class ReportService
         $query = LedgerEntry::query()
             ->with(['wallet.client', 'tags']);
 
-        if (! empty($filters['client_id'])) {
-            $query->whereHas('wallet', function (Builder $q) use ($filters) {
-                $q->where('client_id', $filters['client_id']);
-            });
+        // Apply customer filtering if user is a customer
+        if (auth()->user()->hasRole('customer')) {
+            $query->forCustomer(auth()->user());
+        } else {
+            // Admin/operator can filter by client
+            if (! empty($filters['client_id'])) {
+                $query->whereHas('wallet', function (Builder $q) use ($filters) {
+                    $q->where('client_id', $filters['client_id']);
+                });
+            }
         }
 
         if (! empty($filters['wallet_id'])) {

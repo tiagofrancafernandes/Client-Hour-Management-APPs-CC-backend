@@ -9,6 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Laravel 12 REST API implementing a ledger-based hour tracking system.
 
 ### Tech Stack
+
 - **Framework**: Laravel 12 (PHP 8.2+)
 - **Database**: PostgreSQL 16
 - **Cache**: Redis 7
@@ -26,6 +27,7 @@ This system follows strict **append-only ledger** principles:
 - `LedgerEntry.hours` is signed (positive = credit, negative = debit)
 
 ### Domain Entities
+
 - **Client** → has many Wallets
 - **Wallet** → belongs to Client, has many LedgerEntries
 - **LedgerEntry** → immutable record of hour changes
@@ -60,6 +62,7 @@ php artisan db:seed --class=RolesAndPermissionsSeeder
 ```
 
 ### Docker Commands
+
 ```bash
 # From project root
 docker compose --env-file .env.docker exec backend php artisan migrate
@@ -70,6 +73,7 @@ docker compose --env-file .env.docker exec backend ./vendor/bin/pint
 ## Architecture
 
 ### Directory Structure
+
 ```
 app/
 ├── Http/
@@ -84,26 +88,30 @@ app/
 ```
 
 ### Principles
+
 - **Thin controllers** — Business logic in Services
 - **Services for logic** — BalanceCalculatorService, LedgerService, ReportService
 - Use `$request->input('field')` instead of `$request->field`
 - PSR-12 code style enforced via Pint
 
 ### API Endpoints
+
 All endpoints require `auth:sanctum` middleware.
 
-| Resource | Endpoints |
-|----------|-----------|
-| Clients | `GET/POST /api/clients`, `GET/PUT/DELETE /api/clients/{id}` |
-| Wallets | `GET/POST /api/wallets`, `GET/PUT/DELETE /api/wallets/{id}` |
-| Wallet Balance | `GET /api/wallets/{id}/balance` |
-| Wallet Entries | `GET /api/wallets/{id}/entries` |
-| Ledger Entries | `GET/POST /api/ledger-entries`, `GET /api/ledger-entries/{id}` |
-| Tags | `GET/POST /api/tags`, `GET/PUT/DELETE /api/tags/{id}` |
-| Reports | `GET /api/reports`, `/api/reports/summary`, `/api/reports/by-wallet`, `/api/reports/by-client` |
+| Resource       | Endpoints                                                                                      |
+| -------------- | ---------------------------------------------------------------------------------------------- |
+| Clients        | `GET/POST /api/clients`, `GET/PUT/DELETE /api/clients/{id}`                                    |
+| Wallets        | `GET/POST /api/wallets`, `GET/PUT/DELETE /api/wallets/{id}`                                    |
+| Wallet Balance | `GET /api/wallets/{id}/balance`                                                                |
+| Wallet Entries | `GET /api/wallets/{id}/entries`                                                                |
+| Ledger Entries | `GET/POST /api/ledger-entries`, `GET /api/ledger-entries/{id}`                                 |
+| Tags           | `GET/POST /api/tags`, `GET/PUT/DELETE /api/tags/{id}`                                          |
+| Reports        | `GET /api/reports`, `/api/reports/summary`, `/api/reports/by-wallet`, `/api/reports/by-client` |
 
 ### Permissions
+
 Managed via Spatie Laravel Permission:
+
 - **admin**: Full access (clients, wallets, credits, adjustments)
 - **user**: View access + insert debits + view reports
 

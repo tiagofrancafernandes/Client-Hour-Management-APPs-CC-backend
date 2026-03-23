@@ -63,13 +63,18 @@ class ImportService
                     return;
                 }
 
+                $hours = $this->calculateHours($rowData);
+
                 $row = ImportPlanRow::create([
                     'import_plan_id' => $plan->id,
                     'row_number' => $rowNumber,
                     'reference_date' => $rowData['reference_date'] ?? now(),
-                    'hours' => $rowData['hours'] ?? 0,
+                    'start_time' => $rowData['start_time'] ?? null,
+                    'end_time' => $rowData['end_time'] ?? null,
+                    'hours' => $hours,
                     'title' => $rowData['title'] ?? '',
                     'description' => $rowData['description'] ?? null,
+                    'input_type' => $rowData['input_type'] ?? 'debit',
                     'tags' => $this->parseTags($rowData['tags'] ?? ''),
                     'validation_errors' => [],
                     'is_valid' => true,
@@ -195,11 +200,25 @@ class ImportService
             throw new \Exception('Cannot update rows of a confirmed import plan.');
         }
 
+        // Calculate hours if start_time and end_time are provided
+        $hours = $data['hours'] ?? $row->hours;
+
+        if (!empty($data['start_time']) && !empty($data['end_time'])) {
+            $hours = $this->calculateHours([
+                'start_time' => $data['start_time'],
+                'end_time' => $data['end_time'],
+                'hours' => $hours,
+            ]);
+        }
+
         $row->update([
             'reference_date' => $data['reference_date'] ?? $row->reference_date,
-            'hours' => $data['hours'] ?? $row->hours,
+            'start_time' => $data['start_time'] ?? $row->start_time,
+            'end_time' => $data['end_time'] ?? $row->end_time,
+            'hours' => $hours,
             'title' => $data['title'] ?? $row->title,
             'description' => $data['description'] ?? $row->description,
+            'input_type' => $data['input_type'] ?? $row->input_type,
             'tags' => $data['tags'] ?? $row->tags,
         ]);
 
@@ -226,14 +245,31 @@ class ImportService
 
         $maxRowNumber = $plan->rows()->max('row_number') ?? 0;
 
+        // Calculate hours if start_time and end_time are provided
+        $hours = $this->calculateHours($data);
+
+        // Handle tags - can be array or string
+        $tags = [];
+
+        if (isset($data['tags'])) {
+            if (is_array($data['tags'])) {
+                $tags = $data['tags'];
+            } elseif (is_string($data['tags'])) {
+                $tags = $this->parseTags($data['tags']);
+            }
+        }
+
         $row = ImportPlanRow::create([
             'import_plan_id' => $plan->id,
             'row_number' => $maxRowNumber + 1,
             'reference_date' => $data['reference_date'],
-            'hours' => $data['hours'],
+            'start_time' => $data['start_time'] ?? null,
+            'end_time' => $data['end_time'] ?? null,
+            'hours' => $hours,
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
-            'tags' => $data['tags'] ?? [],
+            'input_type' => $data['input_type'] ?? 'debit',
+            'tags' => $tags,
             'validation_errors' => [],
             'is_valid' => true,
         ]);
@@ -273,32 +309,48 @@ class ImportService
     {
         $headers = [
             'reference_date',
+            'start_time',
+            'end_time',
             'hours',
             'title',
             'description',
+            'input_type',
             'tags',
         ];
 
+        $now = now();
+        $today = $now->format('Y-m-d');
+        $threeDaysAgo = $now->subDays(3)->format('Y-m-d');
+
         $exampleData = [
             [
-                'reference_date' => now()->format('Y-m-d'),
-                'hours' => 2.5,
-                'title' => 'Example Task',
-                'description' => 'Example description',
-                'tags' => 'tag1,tag2',
+                'reference_date' => $today,
+                'start_time' => $today . ' 08:00:00',
+                'end_time' => $today . ' 10:30:00',
+                'hours' => '',
+                'title' => 'Meeting with client',
+                'description' => 'Calculated from start/end times (2.5 hours)',
+                'input_type' => 'debit',
+                'tags' => 'meeting,important',
             ],
             [
-                'reference_date' => now()->subDays(1)->format('Y-m-d'),
-                'hours' => -1.5,
-                'title' => 'Another Task',
-                'description' => 'Another example with negative hours (debit)',
-                'tags' => 'tag3',
+                'reference_date' => $today,
+                'start_time' => '',
+                'end_time' => '',
+                'hours' => 5.5,
+                'title' => 'Project development',
+                'description' => 'Manual hours entry for credit',
+                'input_type' => 'credit',
+                'tags' => 'development',
             ],
             [
-                'reference_date' => now()->subDays(2)->format('Y-m-d'),
-                'hours' => 3,
-                'title' => 'Third Task',
+                'reference_date' => $threeDaysAgo,
+                'start_time' => '',
+                'end_time' => '',
+                'hours' => 2,
+                'title' => 'Adjustment for previous work',
                 'description' => '',
+                'input_type' => 'adjustment',
                 'tags' => '',
             ],
         ];
@@ -354,6 +406,7 @@ class ImportService
     {
         $errors = [];
 
+        // Validate reference_date (required)
         if (empty($row->reference_date)) {
             $errors[] = 'Reference date is required.';
         } else {
@@ -363,30 +416,119 @@ class ImportService
                 if ($date->isFuture()) {
                     $errors[] = 'Reference date cannot be in the future.';
                 }
-            } catch (\Exception $e) {
-                $errors[] = 'Invalid date format.';
+            } catch (\Exception) {
+                $errors[] = 'Invalid reference date format.';
             }
         }
 
-        if (empty($row->hours)) {
-            $errors[] = 'Hours is required.';
-        } elseif (!is_numeric($row->hours)) {
-            $errors[] = 'Hours must be a number.';
-        } elseif ($row->hours == 0) {
-            $errors[] = 'Hours cannot be zero.';
+        // Validate start_time and end_time (optional but must be valid if present)
+        if (!empty($row->start_time)) {
+            try {
+                $startTime = \Carbon\Carbon::parse($row->start_time);
+
+                if ($startTime->isFuture()) {
+                    $errors[] = 'Start time cannot be in the future.';
+                }
+            } catch (\Exception) {
+                $errors[] = 'Invalid start time format.';
+            }
         }
 
+        if (!empty($row->end_time)) {
+            try {
+                $endTime = \Carbon\Carbon::parse($row->end_time);
+
+                if ($endTime->isFuture()) {
+                    $errors[] = 'End time cannot be in the future.';
+                }
+            } catch (\Exception) {
+                $errors[] = 'Invalid end time format.';
+            }
+        }
+
+        // Validate start_time and end_time relationship
+        if (!empty($row->start_time) && !empty($row->end_time)) {
+            try {
+                $startTime = \Carbon\Carbon::parse($row->start_time);
+                $endTime = \Carbon\Carbon::parse($row->end_time);
+
+                if ($endTime->lessThanOrEqualTo($startTime)) {
+                    $errors[] = 'End time must be after start time.';
+                }
+            } catch (\Exception) {
+                // Already caught in individual validations
+            }
+        }
+
+        // Validate hours and input_type relationship
+        $hasStartAndEnd = !empty($row->start_time) && !empty($row->end_time);
+        $hoursRequired = in_array($row->input_type, ['credit', 'adjustment']);
+
+        if ($hoursRequired && empty($row->hours)) {
+            $errors[] = "Hours is required for {$row->input_type} input type.";
+        } elseif (!$hasStartAndEnd && empty($row->hours)) {
+            $errors[] = 'Either hours or both start/end times must be provided.';
+        }
+
+        if (!empty($row->hours)) {
+            if (!is_numeric($row->hours)) {
+                $errors[] = 'Hours must be a number.';
+            } elseif ($row->hours == 0) {
+                $errors[] = 'Hours cannot be zero.';
+            }
+        }
+
+        // Validate title (required)
         if (empty($row->title)) {
             $errors[] = 'Title is required.';
         } elseif (strlen($row->title) > 255) {
             $errors[] = 'Title cannot exceed 255 characters.';
         }
 
+        // Validate input_type (debit, credit, adjustment)
+        $validInputTypes = ['debit', 'credit', 'adjustment'];
+
+        if (!empty($row->input_type) && !in_array($row->input_type, $validInputTypes)) {
+            $errors[] = "Invalid input type. Must be one of: " . implode(', ', $validInputTypes);
+        }
+
+        // Validate tags (must be array if present)
         if (!empty($row->tags) && !is_array($row->tags)) {
             $errors[] = 'Tags must be an array.';
         }
 
         return $errors;
+    }
+
+    /**
+     * Calculate hours from provided data
+     * Returns hours in minutes as decimal
+     * If hours is provided, use it; otherwise calculate from start_time and end_time
+     */
+    private function calculateHours(array $rowData): ?float
+    {
+        // If hours is explicitly provided, use it
+        if (!empty($rowData['hours']) && is_numeric($rowData['hours'])) {
+            return (float) $rowData['hours'];
+        }
+
+        // If both start_time and end_time are provided, calculate the difference
+        if (!empty($rowData['start_time']) && !empty($rowData['end_time'])) {
+            try {
+                $startTime = \Carbon\Carbon::parse($rowData['start_time']);
+                $endTime = \Carbon\Carbon::parse($rowData['end_time']);
+
+                // Calculate difference in minutes and convert to decimal hours
+                $diffInMinutes = $startTime->diffInMinutes($endTime);
+                $diffInHours = $diffInMinutes / 60;
+
+                return round($diffInHours, 2);
+            } catch (\Exception) {
+                return null;
+            }
+        }
+
+        return null;
     }
 
     /**

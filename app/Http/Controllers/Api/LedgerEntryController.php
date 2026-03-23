@@ -21,7 +21,14 @@ class LedgerEntryController extends Controller
     {
         $this->authorize('viewAny', LedgerEntry::class);
 
-        $entries = LedgerEntry::query()
+        $query = LedgerEntry::query();
+
+        // Filter by customer if user has customer role
+        if (auth()->user()->hasRole('customer')) {
+            $query->forCustomer(auth()->user());
+        }
+
+        $entries = $query
             ->with(['wallet.client', 'tags'])
             ->when($request->input('wallet_id'), function ($query, $walletId) {
                 $query->where('wallet_id', $walletId);

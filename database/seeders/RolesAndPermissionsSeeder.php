@@ -28,6 +28,8 @@ class RolesAndPermissionsSeeder extends Seeder
         // Reset cached roles and permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
+        $isProduction = app()->environment('production');
+
         // Create Permissions
         $permissions = [
             // Client Management
@@ -36,6 +38,14 @@ class RolesAndPermissionsSeeder extends Seeder
             'client.create',
             'client.update',
             'client.delete',
+
+            // User Management
+            'user.view',
+            'user.view_any',
+            'user.create',
+            'user.update',
+            'user.delete',
+            'user.manage_client_users',
 
             // Wallet Management
             'wallet.view',
@@ -76,8 +86,15 @@ class RolesAndPermissionsSeeder extends Seeder
             'import.cancel',
             'import.delete',
 
+            // Credit Purchases
+            'credit_purchase.create',
+            'credit_purchase.view',
+            'credit_purchase.approve',
+
             // Reports
             'report.view',
+            'report.export',
+            'report.export_any',
             'report.view_any',
         ];
 
@@ -101,6 +118,12 @@ class RolesAndPermissionsSeeder extends Seeder
             'client.create',
             'client.update',
             'client.delete',
+            'user.view',
+            'user.view_any',
+            'user.create',
+            'user.update',
+            'user.delete',
+            'user.manage_client_users',
             'wallet.view',
             'wallet.view_any',
             'wallet.create',
@@ -134,6 +157,11 @@ class RolesAndPermissionsSeeder extends Seeder
             'report.view_any',
         ]);
 
+        if (!$isProduction) {
+            dump('admin permissions', $admin->getAllPermissions()->pluck('name')->toArray());
+            echo PHP_EOL;
+        }
+
         // Manager - Can manage clients, wallets, and add credits/debits
         /** @var Role $manager */
         $manager = Role::firstOrCreate(['name' => 'manager'], ['name' => 'manager']);
@@ -142,6 +170,10 @@ class RolesAndPermissionsSeeder extends Seeder
             'client.view_any',
             'client.create',
             'client.update',
+            'user.view',
+            'user.create',
+            'user.update',
+            'user.manage_client_users',
             'wallet.view',
             'wallet.view_any',
             'wallet.create',
@@ -168,6 +200,11 @@ class RolesAndPermissionsSeeder extends Seeder
             'report.view_any',
         ]);
 
+        if (!$isProduction) {
+            dump('cumanager permissions', $manager->getAllPermissions()->pluck('name')->toArray());
+            echo PHP_EOL;
+        }
+
         // Operator - Can view and add debits (consume hours)
         /** @var Role $operator */
         $operator = Role::firstOrCreate(['name' => 'operator'], ['name' => 'operator']);
@@ -193,22 +230,27 @@ class RolesAndPermissionsSeeder extends Seeder
             'report.view',
         ]);
 
-        // Viewer - Read-only access
-        /** @var Role $viewer */
-        $viewer = Role::firstOrCreate(['name' => 'viewer'], ['name' => 'viewer']);
-        $viewer->syncPermissions([
-            'client.view',
-            'client.view_any',
-            'wallet.view',
-            'wallet.view_any',
-            'ledger.view',
-            'ledger.view_any',
-            'tag.view',
-            'tag.view_any',
-            'timer.view',
-            'import.view',
-            'report.view',
-        ]);
+        if (!$isProduction) {
+            dump('cusoperator permissions', $operator->getAllPermissions()->pluck('name')->toArray());
+            echo PHP_EOL;
+        }
+
+        // // Viewer - Read-only access
+        // /** @var Role $viewer */
+        // $viewer = Role::firstOrCreate(['name' => 'viewer'], ['name' => 'viewer']);
+        // $viewer->syncPermissions([
+        //     'client.view',
+        //     'client.view_any',
+        //     'wallet.view',
+        //     'wallet.view_any',
+        //     'ledger.view',
+        //     'ledger.view_any',
+        //     'tag.view',
+        //     'tag.view_any',
+        //     'timer.view',
+        //     'import.view',
+        //     'report.view',
+        // ]);
 
         // Customer - Can only view own data
         /** @var Role $customer */
@@ -219,15 +261,12 @@ class RolesAndPermissionsSeeder extends Seeder
             'ledger.view',
             'tag.view',
             'timer.view',
-            'timer.create',
-            'timer.update',
-            'timer.confirm',
-            'import.view',
-            'import.create',
-            'import.update',
-            'import.confirm',
-            'import.cancel',
             'report.view',
+            'report.export',
+            'credit_purchase.create',
+            'credit_purchase.view',
         ]);
+
+        dump('customer permissions', $customer->getAllPermissions()->pluck('name')->toArray());
     }
 }

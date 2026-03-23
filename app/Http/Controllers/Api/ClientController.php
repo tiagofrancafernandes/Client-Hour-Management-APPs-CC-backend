@@ -21,9 +21,20 @@ class ClientController extends Controller
     {
         $this->authorize('viewAny', Client::class);
 
-        $clients = Client::query()
+        $query = Client::query();
+
+        // Filter by customer if user has customer role
+        if (auth()->user()->hasRole('customer')) {
+            $query->byCustomer(auth()->user());
+        }
+
+        $clients = $query
             ->when($request->input('search'), function ($query, $search) {
-                $query->where('name', 'ilike', "%{$search}%");
+                $query->where(function ($q) use ($search) {
+                    $q
+                    ->where('name', 'ilike', "%{$search}%")
+                    ->orWhere('notes', 'ilike', "%{$search}%");
+                });
             })
             ->orderBy('name')
             ->paginate($request->input('per_page', 15));
@@ -41,6 +52,17 @@ class ClientController extends Controller
     public function show(Client $client): JsonResponse
     {
         $this->authorize('view', $client);
+
+        // Verify ownership for customers
+        if (auth()->user()->hasRole('customer')) {
+            if (! $client->isUserCustomer(auth()->user())) {
+                return response()->json([
+                    'message' => 'Unauthorized',
+                ], 403);
+            }
+        }
+
+        $client->load('users');
 
         $data = $client->toArray();
         $data['total_balance'] = $this->balanceCalculator->getClientTotalBalance($client);

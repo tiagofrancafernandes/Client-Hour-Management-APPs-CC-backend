@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -32,5 +33,16 @@ class LedgerEntry extends Model
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class, 'ledger_entry_tag');
+    }
+
+    public function scopeForCustomer(Builder $query, User $user): Builder
+    {
+        if (!$user || !$user->customer_id) {
+            return $query->whereRaw('false');
+        }
+
+        return $query->whereHas('wallet', function (Builder $q) use ($user) {
+            $q->where('client_id', $user->customer_id);
+        });
     }
 }

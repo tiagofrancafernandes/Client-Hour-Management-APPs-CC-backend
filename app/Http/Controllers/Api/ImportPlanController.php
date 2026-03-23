@@ -137,10 +137,13 @@ class ImportPlanController extends Controller
         $this->authorize('update', $importPlanRow->importPlan);
 
         $validated = $request->validate([
-            'reference_date' => 'sometimes|date|before_or_equal:today',
-            'hours' => 'sometimes|numeric|not_in:0',
+            'reference_date' => 'sometimes|date',
+            'start_time' => 'sometimes|nullable|date_format:Y-m-d H:i:s',
+            'end_time' => 'sometimes|nullable|date_format:Y-m-d H:i:s',
+            'hours' => 'sometimes|nullable|numeric|not_in:0',
             'title' => 'sometimes|string|max:255',
             'description' => 'sometimes|nullable|string',
+            'input_type' => 'sometimes|in:debit,credit,adjustment',
             'tags' => 'sometimes|array',
             'tags.*' => 'string',
         ]);
@@ -168,10 +171,13 @@ class ImportPlanController extends Controller
         $this->authorize('update', $importPlan);
 
         $validated = $request->validate([
-            'reference_date' => 'required|date|before_or_equal:today',
-            'hours' => 'required|numeric|not_in:0',
+            'reference_date' => 'required|date',
+            'start_time' => 'nullable|date_format:Y-m-d H:i:s',
+            'end_time' => 'nullable|date_format:Y-m-d H:i:s',
+            'hours' => 'nullable|numeric|not_in:0',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'input_type' => 'nullable|in:debit,credit,adjustment',
             'tags' => 'nullable|array',
             'tags.*' => 'string',
         ]);

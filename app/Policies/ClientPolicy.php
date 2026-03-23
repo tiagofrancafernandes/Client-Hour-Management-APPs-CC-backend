@@ -14,7 +14,18 @@ class ClientPolicy
 
     public function view(User $user, Client $client): bool
     {
-        return $user->can('client.view');
+        $canView = $user->can('client.view');
+
+        if (! $canView) {
+            return false;
+        }
+
+        // Verify ownership for customers
+        if ($user->hasRole('customer')) {
+            return $client->isUserCustomer($user);
+        }
+
+        return true;
     }
 
     public function create(User $user): bool

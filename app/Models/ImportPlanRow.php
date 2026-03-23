@@ -14,10 +14,13 @@ class ImportPlanRow extends Model
         'import_plan_id',
         'row_number',
         'reference_date',
+        'start_time',
+        'end_time',
         'hours',
         'title',
         'description',
         'tags',
+        'input_type',
         'validation_errors',
         'is_valid',
         'ledger_entry_id',
@@ -25,6 +28,8 @@ class ImportPlanRow extends Model
 
     protected $casts = [
         'reference_date' => 'date',
+        'start_time' => 'datetime',
+        'end_time' => 'datetime',
         'hours' => 'decimal:2',
         'tags' => 'array',
         'validation_errors' => 'array',

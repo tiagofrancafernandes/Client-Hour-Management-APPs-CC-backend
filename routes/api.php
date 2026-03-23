@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ClientController;
+use App\Http\Controllers\Api\ClientUserController;
 use App\Http\Controllers\Api\CreditPurchaseController;
 use App\Http\Controllers\Api\ImportPlanController;
 use App\Http\Controllers\Api\LedgerEntryController;
@@ -29,6 +30,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', fn (Request $request) => $request->user());
 
     Route::apiResource('clients', ClientController::class);
+
+    // Client Users Routes
+    Route::prefix('clients/{client}')->group(function () {
+        Route::get('/users', [ClientUserController::class, 'index']);
+        Route::post('/users', [ClientUserController::class, 'store']);
+        Route::put('/users/{user}', [ClientUserController::class, 'update']);
+        Route::delete('/users/{user}', [ClientUserController::class, 'destroy']);
+    });
 
     Route::apiResource('wallets', WalletController::class);
     Route::get('/wallets/{wallet}/entries', [WalletController::class, 'entries']);

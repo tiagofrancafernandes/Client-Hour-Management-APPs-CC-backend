@@ -76,10 +76,6 @@ class ImportPlanPolicy
             return false;
         }
 
-        if ($importPlan->status === 'confirmed') {
-            return false;
-        }
-
         return $importPlan->user_id === $user->id;
     }
 

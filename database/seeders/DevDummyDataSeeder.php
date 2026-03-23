@@ -11,63 +11,103 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 
-class DevDammyDataSeeder extends Seeder
+class DevDummyDataSeeder extends Seeder
 {
+    public static function inOnLoop(): bool
+    {
+        return config('dev-plug.is_on_loop') && !config('dev-plug.to_force_action');
+    }
+
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        dump(config('dev-plug'));
-
-        if (config('dev-plug.is_on_loop') && !config('dev-plug.to_force_action')) {
-            $this->command->info('On loop. Returning on ' . __METHOD__);
-
-            return;
-        }
-
         if (app()->isProduction()) {
             return;
         }
 
-        $this->dummyUsers();
+        $inOnLoop = static::inOnLoop();
+
+        if ($inOnLoop) {
+            $this->command->info('Running in loop mode.');
+        }
+
         $this->dummyTags();
         $this->dummyClientsAndWallets();
-        $this->dummyLedgerEntries();
+        $this->dummyUsers();
+
+        if ($inOnLoop && rand(0, 100) < 10) {
+            dump('RAND', config('dev-plug'));
+            $this->dummyLedgerEntries();
+        }
     }
 
     protected function dummyUsers()
     {
-        $users = [
+        $this->command->newLine();
+        $this->command->info('Creating users...');
+
+        // Get all clients to associate with customer users
+        $clients = Client::all();
+
+        // Create customer users - each associated with a client
+        $customerUsersData = [
             [
-                'name' => 'Customer1',
-                'email' => 'customer1@mail.com',
-                'password' => 'power@123',
+                'name' => 'Cliente 1 - Usuário',
+                'email' => 'customer1@test.com',
+                'password' => 'password',
                 'email_verified_at' => now(),
                 'role' => 'customer',
+                'client_index' => 0, // Associate with first client
+            ],
+            [
+                'name' => 'Cliente 2 - Usuário',
+                'email' => 'customer2@test.com',
+                'password' => 'password',
+                'email_verified_at' => now(),
+                'role' => 'customer',
+                'client_index' => 1, // Associate with second client
+            ],
+            [
+                'name' => 'Cliente 3 - Usuário',
+                'email' => 'customer3@test.com',
+                'password' => 'password',
+                'email_verified_at' => now(),
+                'role' => 'customer',
+                'client_index' => 2, // Associate with third client (will be created)
             ],
         ];
 
-        foreach ($users as $userData) {
+        foreach ($customerUsersData as $userData) {
             if (!isset($userData['email'])) {
                 continue;
             }
 
             $role = $userData['role'] ?? null;
-            $password = $userData['password'] ?? 'power@123';
-            $userData = \Arr::except($userData, ['role']);
+            $password = $userData['password'] ?? 'password';
+            $clientIndex = $userData['client_index'] ?? null;
+
+            $userData = \Arr::except($userData, ['role', 'client_index']);
             $userData['password'] = Hash::make($password);
 
+            // Associate with client if available
+            if ($clientIndex !== null && isset($clients[$clientIndex])) {
+                $userData['customer_id'] = $clients[$clientIndex]->id;
+            }
+
             $user = User::updateOrCreate(
-                [
-                    'email' => $userData['email']
-                ],
+                ['email' => $userData['email']],
                 $userData,
             );
 
             $this->command->newLine();
             $this->command->info("Email: {$user?->email}");
             $this->command->info("Password: {$password}");
+
+            if ($userData['customer_id'] ?? null) {
+                $this->command->info("Associated Client ID: {$userData['customer_id']}");
+            }
 
             if (!$role || !is_string($role) || !class_exists(Role::class)) {
                 continue;
@@ -116,32 +156,63 @@ class DevDammyDataSeeder extends Seeder
             [
                 'name' => 'Cliente 1',
                 'notes' => 'Cliente de desenvolvimento de software',
+                'customer_since' => now()->subMonths(12)->toDateString(),
                 'wallets' => [
                     [
                         'name' => 'Projeto 1',
                         'description' => 'Sistema de gestão interno',
                         'hourly_rate_reference' => '150.00',
+                        'credit_purchase_allowed' => true,
                     ],
                     [
                         'name' => 'Projeto 2',
                         'description' => 'Aplicativo mobile',
                         'hourly_rate_reference' => '180.00',
+                        'credit_purchase_allowed' => false,
                     ],
                 ],
             ],
             [
                 'name' => 'Cliente 2',
                 'notes' => 'Cliente de consultoria',
+                'customer_since' => now()->subMonths(8)->toDateString(),
                 'wallets' => [
                     [
                         'name' => 'Projeto 3',
                         'description' => 'Website institucional',
                         'hourly_rate_reference' => '120.00',
+                        'credit_purchase_allowed' => true,
                     ],
                     [
                         'name' => 'Projeto 4',
                         'description' => 'Sistema de vendas',
                         'hourly_rate_reference' => '160.00',
+                        'credit_purchase_allowed' => false,
+                    ],
+                ],
+            ],
+            [
+                'name' => 'Cliente 3',
+                'notes' => 'Cliente de manutenção e suporte',
+                'customer_since' => now()->subMonths(4)->toDateString(),
+                'wallets' => [
+                    [
+                        'name' => 'Suporte Técnico',
+                        'description' => 'Pacote anual de suporte',
+                        'hourly_rate_reference' => '100.00',
+                        'credit_purchase_allowed' => true,
+                    ],
+                    [
+                        'name' => 'Manutenção',
+                        'description' => 'Manutenção preventiva e corretiva',
+                        'hourly_rate_reference' => '130.00',
+                        'credit_purchase_allowed' => true,
+                    ],
+                    [
+                        'name' => 'Desenvolvimento',
+                        'description' => 'Novas funcionalidades e melhorias',
+                        'hourly_rate_reference' => '200.00',
+                        'credit_purchase_allowed' => false,
                     ],
                 ],
             ],

@@ -62,6 +62,13 @@ class LedgerService
 
     public function getWalletEntries(Wallet $wallet, int $perPage = 15)
     {
+        // Verify customer can access this wallet
+        if (auth()->user()->hasRole('customer')) {
+            if (!$wallet->canAccessAsCustomer(auth()->user())) {
+                abort(403, 'Unauthorized to access this wallet');
+            }
+        }
+
         return $wallet->ledgerEntries()
             ->with('tags')
             ->orderBy('reference_date', 'desc')

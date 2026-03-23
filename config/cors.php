@@ -23,13 +23,15 @@ return [
             array_filter(
                 array_map(fn ($v) => trim("{$v}"), [
                     env('FRONTEND_URL', 'http://localhost:3000'),
-                    env('CENTRAL_DOMAIN'),
                     ...explode(',', strval(env('CENTRAL_DOMAINS'))),
                     ...explode(',', strval(env('ALLOWED_ORIGINS'))),
+                    env('CENTRAL_DOMAIN'),
                     env('SAAS_DOMAIN'),
                     env('CUSTOMER_APP_DOMAIN'),
                     env('BACKOFFICE_DOMAIN'),
                     env('API_DOMAIN'),
+                    env('APP_MAIN_DOMAIN'),
+                    env('FRONTEND_MAIN_DOMAIN'),
                     '127.0.0.1',
                     'localhost',
                 ])

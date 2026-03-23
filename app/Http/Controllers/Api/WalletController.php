@@ -23,11 +23,20 @@ class WalletController extends Controller
     {
         $this->authorize('viewAny', Wallet::class);
 
-        $wallets = Wallet::query()
-            ->with('client')
-            ->when($request->input('client_id'), function ($query, $clientId) {
-                $query->where('client_id', $clientId);
-            })
+        $query = Wallet::query()
+            ->with('client');
+
+        // Apply customer filtering if user is a customer
+        if (auth()->user()->hasRole('customer')) {
+            $query->forCustomer(auth()->user());
+        } else {
+            // Admin/operator can filter by client
+            $query->when($request->input('client_id'), function ($q, $clientId) {
+                $q->where('client_id', $clientId);
+            });
+        }
+
+        $wallets = $query
             ->when($request->input('search'), function ($query, $search) {
                 $query->where('name', 'ilike', "%{$search}%");
             })
@@ -50,6 +59,13 @@ class WalletController extends Controller
     public function show(Wallet $wallet): JsonResponse
     {
         $this->authorize('view', $wallet);
+
+        // Verify customer can access this wallet
+        if (auth()->user()->hasRole('customer')) {
+            if (!$wallet->canAccessAsCustomer(auth()->user())) {
+                abort(403, 'Unauthorized to access this wallet');
+            }
+        }
 
         // Filter sensitive fields based on permission
         $wallet->hideInternalNoteIfNotPermitted(auth()->user());
