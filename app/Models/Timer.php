@@ -62,7 +62,12 @@ class Timer extends Model
         $totalSeconds = 0;
 
         foreach ($this->cycles as $cycle) {
-            $totalSeconds += $cycle->duration_seconds;
+            if ($cycle->ended_at) {
+                $totalSeconds += $cycle->duration_seconds;
+            } else {
+                // Ciclo em andamento: contabiliza tempo decorrido desde o início
+                $totalSeconds += (int) $cycle->started_at->diffInSeconds(now());
+            }
         }
 
         return $totalSeconds;
