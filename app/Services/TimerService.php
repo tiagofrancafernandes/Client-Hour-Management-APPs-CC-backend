@@ -218,7 +218,22 @@ class TimerService
     public function getUserTimers(User $user, ?string $status = null)
     {
         $query = Timer::where('user_id', $user->id)
-            ->with(['cycles', 'wallet.client', 'tags', 'ledgerEntry']);
+            ->with(['cycles', 'wallet.client', 'tags', 'ledgerEntry', 'user']);
+
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        return $query->orderBy('created_at', 'desc');
+    }
+
+    public function getTimers(?User $user = null, ?string $status = null)
+    {
+        if ($user) {
+            return $this->getUserTimers($user, $status);
+        }
+
+        $query = Timer::with(['cycles', 'wallet.client', 'tags', 'ledgerEntry', 'user']);
 
         if ($status) {
             $query->where('status', $status);

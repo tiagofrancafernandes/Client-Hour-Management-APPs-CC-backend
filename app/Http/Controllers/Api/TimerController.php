@@ -18,12 +18,19 @@ class TimerController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $this->authorize('viewAny', Timer::class);
-
+        $listAllUserTimers = $request->boolean('list_all');
         $status = $request->input('status');
 
+        if ($listAllUserTimers) {
+            $this->authorize('viewAny', Timer::class);
+        }
+
+        if (!$listAllUserTimers) {
+            $this->authorize('view', Timer::class);
+        }
+
         $timers = $this->timerService
-            ->getUserTimers($request->user(), $status)
+            ->getTimers(!$listAllUserTimers ? $request->user() : null, $status)
             ->paginate(15);
 
         return response()->json($timers);

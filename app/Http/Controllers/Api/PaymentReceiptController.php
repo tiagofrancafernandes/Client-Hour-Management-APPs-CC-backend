@@ -8,6 +8,7 @@ use App\Models\CreditPurchasePayment;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PaymentReceiptController extends Controller
 {
@@ -15,35 +16,31 @@ class PaymentReceiptController extends Controller
      * Upload receipt for PIX Offline payment
      * POST /api/credit-purchases/{id}/payments/{payment}/upload-receipt
      */
-    public function store(Request $request, CreditPurchase $creditPurchase, CreditPurchasePayment $payment): JsonResponse
+    public function store(Request $request, CreditPurchase $creditPurchase, CreditPurchasePayment $creditPurchasePayment): JsonResponse
     {
         $user = auth()->user();
 
-        // Verificar autorização
         if ($user->hasRole('customer') && $user->id !== $creditPurchase->customer_id) {
             return response()->json([
                 'message' => 'Unauthorized',
             ], 403);
         }
 
-        // Verificar se payment pertence a purchase
-        if ($payment->credit_purchase_id !== $creditPurchase->id) {
+        if ($creditPurchasePayment->credit_purchase_id !== $creditPurchase->id) {
             return response()->json([
                 'message' => 'Payment does not belong to this purchase',
             ], 422);
         }
 
-        // Validar arquivo
         $request->validate([
             'receipt' => [
                 'required',
                 'file',
-                'max:5120', // 5MB
+                'max:5120',
                 'mimes:pdf,png,jpg,jpeg',
             ],
         ]);
 
-        // Armazenar arquivo
         $file = $request->file('receipt');
         $path = "pix-receipts/{$creditPurchase->id}/" . uniqid() . '.' . $file->getClientOriginalExtension();
 
@@ -54,46 +51,42 @@ class PaymentReceiptController extends Controller
             'private'
         );
 
-        // Atualizar payment
-        $payment->update([
+        $creditPurchasePayment->update([
             'pix_receipt_path' => $path,
         ]);
 
         return response()->json([
-            'data' => $payment,
+            'data' => $creditPurchasePayment,
             'message' => 'Receipt uploaded successfully',
         ]);
     }
 
     /**
-     * Get receipt URL for download
-     * GET /api/payments/{id}/receipt-url
+     * Download the receipt file (authenticated, streamed).
+     * GET /api/payments/{id}/receipt-download
      */
-    public function getUrl(CreditPurchasePayment $payment): JsonResponse
+    public function download(CreditPurchasePayment $creditPurchasePayment): StreamedResponse|JsonResponse
     {
         $user = auth()->user();
 
-        // Verificar autorização (owner ou admin)
-        if ($user->hasRole('customer') && $user->id !== $payment->creditPurchase->customer_id) {
+        if ($user->hasRole('customer') && $user->id !== $creditPurchasePayment->creditPurchase->customer_id) {
             return response()->json([
                 'message' => 'Unauthorized',
             ], 403);
         }
 
-        if (! $payment->pix_receipt_path) {
+        if (! $creditPurchasePayment->pix_receipt_path) {
             return response()->json([
                 'message' => 'No receipt uploaded',
             ], 404);
         }
 
-        $url = Storage::disk('local')->temporaryUrl(
-            $payment->pix_receipt_path,
-            now()->addMinutes(60),
-            ['ResponseContentDisposition' => 'attachment']
-        );
+        if (! Storage::disk('local')->exists($creditPurchasePayment->pix_receipt_path)) {
+            return response()->json([
+                'message' => 'Receipt file not found on disk',
+            ], 404);
+        }
 
-        return response()->json([
-            'url' => $url,
-        ]);
+        return Storage::disk('local')->download($creditPurchasePayment->pix_receipt_path);
     }
 }

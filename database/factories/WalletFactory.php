@@ -25,6 +25,8 @@ class WalletFactory extends Factory
             'name' => fake()->words(2, true) . ' Wallet',
             'description' => fake()->optional()->sentence(),
             'hourly_rate_reference' => fake()->randomFloat(2, 50, 200),
+            'currency_code' => 'BRL',
+            'credit_purchase_allowed' => false,
         ];
     }
 }

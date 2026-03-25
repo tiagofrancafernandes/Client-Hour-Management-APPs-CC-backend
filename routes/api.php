@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\PaymentReceiptController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\Api\TimerController;
+use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\WalletController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +29,16 @@ Route::prefix('auth')->group(function () {
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', fn (Request $request) => $request->user());
+
+    // User Management
+    Route::prefix('users')->group(function () {
+        Route::get('/', [UserController::class, 'index']);
+        Route::get('/options', [UserController::class, 'availableOptions']);
+        Route::get('/{user}', [UserController::class, 'show']);
+        Route::put('/{user}', [UserController::class, 'update']);
+        Route::put('/{user}/role', [UserController::class, 'updateRole']);
+        Route::put('/{user}/permissions', [UserController::class, 'updatePermissions']);
+    });
 
     Route::apiResource('clients', ClientController::class);
 
@@ -95,13 +106,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/{creditPurchase}/payments', [PaymentController::class, 'store']);
         Route::put('/{creditPurchase}/payments/{creditPurchasePayment}/set-method', [PaymentController::class, 'setMethod']);
         Route::post('/{creditPurchase}/payments/{creditPurchasePayment}/upload-receipt', [PaymentReceiptController::class, 'store']);
-        Route::get('/payments/{creditPurchasePayment}/receipt-url', [PaymentReceiptController::class, 'getUrl']);
     });
 
-    // Payment Approval Routes (Admin only)
+    // Payment Routes (Admin approval + receipt URL)
     Route::prefix('payments')->group(function () {
         Route::get('/pending', [PaymentApprovalController::class, 'pending']);
         Route::post('/{creditPurchasePayment}/approve', [PaymentApprovalController::class, 'approve']);
         Route::post('/{creditPurchasePayment}/reject', [PaymentApprovalController::class, 'reject']);
+        Route::get('/{creditPurchasePayment}/receipt-download', [PaymentReceiptController::class, 'download']);
     });
 });

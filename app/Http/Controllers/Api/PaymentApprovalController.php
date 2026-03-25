@@ -16,7 +16,7 @@ class PaymentApprovalController extends Controller
      * Approve a payment
      * POST /api/payments/{id}/approve
      */
-    public function approve(Request $request, CreditPurchasePayment $payment): JsonResponse
+    public function approve(Request $request, CreditPurchasePayment $creditPurchasePayment): JsonResponse
     {
         $user = auth()->user();
 
@@ -24,11 +24,11 @@ class PaymentApprovalController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        if ($payment->isExpired()) {
+        if ($creditPurchasePayment->isExpired()) {
             return response()->json(['message' => 'Payment has expired and cannot be approved'], 422);
         }
 
-        if ($payment->payment_status !== PaymentStatus::PENDING) {
+        if ($creditPurchasePayment->payment_status !== PaymentStatus::PENDING) {
             return response()->json(['message' => 'Payment is not pending'], 422);
         }
 
@@ -36,14 +36,14 @@ class PaymentApprovalController extends Controller
             'notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $payment->update([
+        $creditPurchasePayment->update([
             'payment_status' => PaymentStatus::APPROVED,
             'receipt_approved_by' => $user->id,
             'receipt_approved_at' => now(),
             'notes' => $request->input('notes'),
         ]);
 
-        $creditPurchase = $payment->creditPurchase;
+        $creditPurchase = $creditPurchasePayment->creditPurchase;
         $this->applyCreditToWallet($creditPurchase);
 
         $creditPurchase->update([
@@ -51,7 +51,7 @@ class PaymentApprovalController extends Controller
         ]);
 
         return response()->json([
-            'data' => $payment->fresh(),
+            'data' => $creditPurchasePayment->fresh(),
             'message' => 'Payment approved successfully',
         ]);
     }
@@ -60,7 +60,7 @@ class PaymentApprovalController extends Controller
      * Reject a payment
      * POST /api/payments/{id}/reject
      */
-    public function reject(Request $request, CreditPurchasePayment $payment): JsonResponse
+    public function reject(Request $request, CreditPurchasePayment $creditPurchasePayment): JsonResponse
     {
         $user = auth()->user();
 
@@ -68,7 +68,7 @@ class PaymentApprovalController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        if ($payment->payment_status !== PaymentStatus::PENDING) {
+        if ($creditPurchasePayment->payment_status !== PaymentStatus::PENDING) {
             return response()->json(['message' => 'Payment is not pending'], 422);
         }
 
@@ -76,20 +76,20 @@ class PaymentApprovalController extends Controller
             'notes' => ['required', 'string', 'max:1000'],
         ]);
 
-        $payment->update([
+        $creditPurchasePayment->update([
             'payment_status' => PaymentStatus::REJECTED,
             'receipt_approved_by' => $user->id,
             'receipt_approved_at' => now(),
             'notes' => $request->input('notes'),
         ]);
 
-        $creditPurchase = $payment->creditPurchase;
+        $creditPurchase = $creditPurchasePayment->creditPurchase;
         $creditPurchase->update([
             'status' => CreditPurchaseStatus::REJECTED,
         ]);
 
         return response()->json([
-            'data' => $payment->fresh(),
+            'data' => $creditPurchasePayment->fresh(),
             'message' => 'Payment rejected successfully',
         ]);
     }

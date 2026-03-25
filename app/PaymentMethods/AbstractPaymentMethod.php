@@ -5,9 +5,11 @@ namespace App\PaymentMethods;
 use App\Contracts\PaymentMethodContract;
 use Carbon\Carbon;
 use Carbon\CarbonInterval;
+use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Contracts\Support\Jsonable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
-abstract class AbstractPaymentMethod implements PaymentMethodContract
+abstract class AbstractPaymentMethod implements PaymentMethodContract, Arrayable, Jsonable
 {
     abstract public function key(): string;
 
@@ -111,8 +113,8 @@ abstract class AbstractPaymentMethod implements PaymentMethodContract
         ];
     }
 
-    public function toJson(): string
+    public function toJson($options = 0): string
     {
-        return json_encode($this->toArray(), JSON_THROW_ON_ERROR);
+        return json_encode($this->toArray(), JSON_THROW_ON_ERROR | $options);
     }
 }

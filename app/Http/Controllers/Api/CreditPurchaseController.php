@@ -68,19 +68,18 @@ class CreditPurchaseController extends Controller
      * Show a credit purchase
      * GET /api/credit-purchases/{id}
      */
-    public function show(CreditPurchase $purchase): JsonResponse
+    public function show(CreditPurchase $creditPurchase): JsonResponse
     {
         $user = auth()->user();
 
-        // Verificar autorização
-        if ($user->hasRole('customer') && $user->id !== $purchase->customer_id) {
+        if ($user->hasRole('customer') && $user->id !== $creditPurchase->customer_id) {
             return response()->json([
                 'message' => 'Unauthorized',
             ], 403);
         }
 
         return response()->json(
-            $purchase->load(['wallet.client', 'customer', 'payments'])
+            $creditPurchase->load(['wallet.client', 'customer', 'payments'])
         );
     }
 

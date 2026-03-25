@@ -34,6 +34,8 @@ return [
             'serve' => true,
             'throw' => false,
             'report' => false,
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/') . '/storage',
+            'visibility' => 'private',
         ],
 
         'public' => [
@@ -71,6 +73,16 @@ return [
     */
 
     'links' => [
-        public_path('storage') => storage_path('app/public'),
+        ...(function (): array {
+            $links = [];
+            $links[public_path('storage')] = in_array(env('FILESYSTEM_DISK', 'local'), ['local', 'private'])
+                ? storage_path('app/private')
+                : storage_path('app/public');
+
+            $links[public_path('pv_storage')] = storage_path('app/private');
+            $links[public_path('pb_storage')] = storage_path('app/public');
+
+            return $links;
+        })(),
     ],
 ];

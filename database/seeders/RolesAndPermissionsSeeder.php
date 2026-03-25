@@ -201,7 +201,7 @@ class RolesAndPermissionsSeeder extends Seeder
         ]);
 
         if (!$isProduction) {
-            dump('cumanager permissions', $manager->getAllPermissions()->pluck('name')->toArray());
+            dump('manager permissions', $manager->getAllPermissions()->pluck('name')->toArray());
             echo PHP_EOL;
         }
 
@@ -231,7 +231,7 @@ class RolesAndPermissionsSeeder extends Seeder
         ]);
 
         if (!$isProduction) {
-            dump('cusoperator permissions', $operator->getAllPermissions()->pluck('name')->toArray());
+            dump('operator permissions', $operator->getAllPermissions()->pluck('name')->toArray());
             echo PHP_EOL;
         }
 
