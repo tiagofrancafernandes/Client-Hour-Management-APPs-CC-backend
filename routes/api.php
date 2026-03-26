@@ -33,6 +33,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // User Management
     Route::prefix('users')->group(function () {
         Route::get('/', [UserController::class, 'index']);
+        Route::post('/', [UserController::class, 'store']);
         Route::get('/options', [UserController::class, 'availableOptions']);
         Route::get('/{user}', [UserController::class, 'show']);
         Route::put('/{user}', [UserController::class, 'update']);
@@ -46,7 +47,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix('clients/{client}')->group(function () {
         Route::get('/users', [ClientUserController::class, 'index']);
         Route::post('/users', [ClientUserController::class, 'store']);
+        Route::post('/users/attach', [ClientUserController::class, 'attach']);
         Route::put('/users/{user}', [ClientUserController::class, 'update']);
+        Route::put('/users/{user}/set-admin', [ClientUserController::class, 'setAdmin']);
         Route::delete('/users/{user}', [ClientUserController::class, 'destroy']);
     });
 

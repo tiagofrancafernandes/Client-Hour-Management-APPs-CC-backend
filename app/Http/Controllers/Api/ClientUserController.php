@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateClientUserRequest;
 use App\Models\Client;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class ClientUserController extends Controller
@@ -26,25 +27,20 @@ class ClientUserController extends Controller
     }
 
     /**
-     * Criar usuário para um cliente
+     * Criar novo usuário e associá-lo ao cliente
      * POST /api/clients/{client}/users
      */
     public function store(StoreClientUserRequest $request, Client $client): JsonResponse
     {
-        // Verificar se cliente já tem usuário
-        if ($client->users()->exists()) {
-            return response()->json([
-                'message' => 'Este cliente já possui um usuário associado',
-            ], 422);
-        }
-
         $data = $request->validated();
         $data['password'] = Hash::make($data['password']);
         $data['customer_id'] = $client->id;
 
+        $hasAdminAlready = $client->users()->where('client_role', 'admin')->exists();
+        $data['client_role'] = $hasAdminAlready ? 'member' : 'admin';
+
         $user = User::create($data);
 
-        // Atribuir role customer
         $user->assignRole('customer');
 
         return response()->json([
@@ -54,12 +50,78 @@ class ClientUserController extends Controller
     }
 
     /**
-     * Atualizar usuário de cliente
+     * Vincular usuário existente a um cliente
+     * POST /api/clients/{client}/users/attach
+     */
+    public function attach(Request $request, Client $client): JsonResponse
+    {
+        $this->authorize('viewAny', User::class);
+
+        $validated = $request->validate([
+            'user_id' => ['required', 'integer', 'exists:users,id'],
+            'role' => ['nullable', 'string', 'in:admin,member'],
+        ]);
+
+        $user = User::findOrFail($validated['user_id']);
+
+        if ($user->customer_id && $user->customer_id !== $client->id) {
+            return response()->json([
+                'message' => 'Usuário já pertence a outro cliente',
+            ], 422);
+        }
+
+        $hasAdminAlready = $client->users()->where('client_role', 'admin')->exists();
+        $role = $validated['role'] ?? ($hasAdminAlready ? 'member' : 'admin');
+
+        if ($role === 'admin') {
+            $client->users()->where('client_role', 'admin')->update(['client_role' => 'member']);
+        }
+
+        $user->customer_id = $client->id;
+        $user->client_role = $role;
+        $user->save();
+
+        if (!$user->hasRole('customer')) {
+            $user->assignRole('customer');
+        }
+
+        return response()->json([
+            'user' => $user->fresh()->load('roles'),
+            'message' => 'Usuário vinculado com sucesso',
+        ]);
+    }
+
+    /**
+     * Definir um usuário como administrador do cliente
+     * PUT /api/clients/{client}/users/{user}/set-admin
+     */
+    public function setAdmin(Client $client, User $user): JsonResponse
+    {
+        $this->authorize('viewAny', User::class);
+
+        if ($user->customer_id !== $client->id) {
+            return response()->json([
+                'message' => 'Usuário não pertence a este cliente',
+            ], 403);
+        }
+
+        $client->users()->where('client_role', 'admin')->update(['client_role' => 'member']);
+
+        $user->client_role = 'admin';
+        $user->save();
+
+        return response()->json([
+            'user' => $user->fresh()->load('roles'),
+            'message' => 'Admin atualizado com sucesso',
+        ]);
+    }
+
+    /**
+     * Atualizar dados de usuário do cliente
      * PUT /api/clients/{client}/users/{user}
      */
     public function update(UpdateClientUserRequest $request, Client $client, User $user): JsonResponse
     {
-        // Verificar se o usuário pertence a este cliente
         if ($user->customer_id !== $client->id) {
             return response()->json([
                 'message' => 'Usuário não pertence a este cliente',
@@ -68,7 +130,6 @@ class ClientUserController extends Controller
 
         $data = $request->validated();
 
-        // Se senha foi fornecida, fazer hash
         if (isset($data['password']) && $data['password']) {
             $data['password'] = Hash::make($data['password']);
         } else {
@@ -91,14 +152,12 @@ class ClientUserController extends Controller
     {
         $this->authorize('delete', $user);
 
-        // Verificar se o usuário pertence a este cliente
         if ($user->customer_id !== $client->id) {
             return response()->json([
                 'message' => 'Usuário não pertence a este cliente',
             ], 403);
         }
 
-        // Não permitir deletar se for o último admin/super_admin
         if ($user->hasRole(['super_admin', 'admin'])) {
             $adminCount = User::role(['super_admin', 'admin'])->count();
 

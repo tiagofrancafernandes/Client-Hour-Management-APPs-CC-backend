@@ -8,6 +8,43 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property int $wallet_id
+ * @property string|null $title
+ * @property string|null $description
+ * @property string $status
+ * @property \Illuminate\Support\Carbon|null $confirmed_at
+ * @property int|null $ledger_entry_id
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, TimerCycle> $cycles
+ * @property-read int|null $cycles_count
+ * @property-read string $formatted_duration
+ * @property-read float $total_hours
+ * @property-read int $total_seconds
+ * @property-read LedgerEntry|null $ledgerEntry
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Tag> $tags
+ * @property-read int|null $tags_count
+ * @property-read User $user
+ * @property-read Wallet $wallet
+ * @method static \Database\Factories\TimerFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timer newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timer newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timer query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timer whereConfirmedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timer whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timer whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timer whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timer whereLedgerEntryId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timer whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timer whereTitle($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timer whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timer whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Timer whereWalletId($value)
+ * @mixin \Eloquent
+ */
 class Timer extends Model
 {
     use HasFactory;

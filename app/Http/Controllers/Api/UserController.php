@@ -3,14 +3,56 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Client;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
+    public function store(Request $request): JsonResponse
+    {
+        $this->authorize('create', User::class);
+
+        $availableRoles = Role::pluck('name')->toArray();
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'role' => ['required', 'string', 'in:' . implode(',', $availableRoles)],
+            'customer_id' => ['nullable', 'integer', 'exists:clients,id'],
+            'client_role' => ['nullable', 'string', 'in:admin,member'],
+        ]);
+
+        $userData = [
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+        ];
+
+        if (!empty($validated['customer_id'])) {
+            $client = Client::find($validated['customer_id']);
+
+            $hasAdminAlready = $client->users()->where('client_role', 'admin')->exists();
+
+            $userData['customer_id'] = $validated['customer_id'];
+            $userData['client_role'] = $validated['client_role'] ?? ($hasAdminAlready ? 'member' : 'admin');
+        }
+
+        $user = User::create($userData);
+
+        $user->assignRole($validated['role']);
+
+        return response()->json([
+            'user' => $user->load(['roles', 'client']),
+            'message' => 'User created successfully',
+        ], 201);
+    }
+
     public function index(Request $request): JsonResponse
     {
         $this->authorize('viewAny', User::class);
