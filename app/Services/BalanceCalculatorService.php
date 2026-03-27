@@ -49,6 +49,10 @@ class BalanceCalculatorService
             'description' => $wallet->description,
             'hourly_rate_reference' => $wallet->hourly_rate_reference,
             'balance' => number_format((float) $wallet->balance, 2, '.', ''),
+            'client_id' => $wallet->client_id,
+            'currency_code' => $wallet->currency_code,
+            'internal_note' => $wallet->internal_note,
+            'credit_purchase_allowed' => $wallet->credit_purchase_allowed,
             'created_at' => $wallet->created_at,
             'updated_at' => $wallet->updated_at,
         ])->toArray();
