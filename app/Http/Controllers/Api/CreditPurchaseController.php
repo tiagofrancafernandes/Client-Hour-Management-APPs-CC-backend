@@ -97,6 +97,20 @@ class CreditPurchaseController extends Controller
             $query->where('wallet_id', $request->input('wallet_id'));
         }
 
+        // Filtrar por client se fornecido
+        if ($request->has('client_id')) {
+            $query->whereHas('wallet', function ($walletQuery) use ($request) {
+                $walletQuery->where('client_id', $request->input('client_id'));
+            });
+        }
+
+        // Filtrar por payment method se fornecido
+        if ($request->has('payment_method')) {
+            $query->whereHas('payments', function ($paymentQuery) use ($request) {
+                $paymentQuery->where('payment_method', $request->input('payment_method'));
+            });
+        }
+
         // Clientes veem apenas suas compras
         if ($user->hasRole('customer')) {
             $query->where('customer_id', $user->id);

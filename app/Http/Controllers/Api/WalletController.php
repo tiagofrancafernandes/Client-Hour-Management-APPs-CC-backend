@@ -51,7 +51,13 @@ class WalletController extends Controller
 
     public function store(StoreWalletRequest $request): JsonResponse
     {
-        $wallet = Wallet::create($request->validated());
+        $validated = $request->validated();
+
+        if (! auth()->user()?->hasPermissionTo('wallet.update_rules')) {
+            unset($validated['credit_purchase_allowed']);
+        }
+
+        $wallet = Wallet::create($validated);
 
         return response()->json($wallet->load('client'), 201);
     }
@@ -87,6 +93,10 @@ class WalletController extends Controller
             }
 
             $validated['internal_note'] = $request->input('internal_note');
+        }
+
+        if (! auth()->user()?->hasPermissionTo('wallet.update_rules')) {
+            unset($validated['credit_purchase_allowed']);
         }
 
         $wallet->update($validated);
