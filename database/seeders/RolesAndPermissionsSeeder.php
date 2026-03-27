@@ -53,6 +53,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'wallet.create',
             'wallet.update',
             'wallet.delete',
+            'wallet.update_any',
+            'wallet.update_rules',
             'wallet.view_internal_note',
 
             // Ledger/Hour Log Operations

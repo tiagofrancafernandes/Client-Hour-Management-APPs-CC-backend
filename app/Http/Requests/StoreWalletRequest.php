@@ -19,6 +19,7 @@ class StoreWalletRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'hourly_rate_reference' => ['nullable', 'numeric', 'min:0'],
             'currency_code' => ['nullable', 'string', 'size:3', 'uppercase'],
+            'credit_purchase_allowed' => ['nullable', 'boolean'],
         ];
     }
 }

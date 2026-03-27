@@ -69,6 +69,14 @@ class UserController extends Controller
             });
         }
 
+        if ($request->boolean('without_client')) {
+            $query->whereNull('customer_id');
+        }
+
+        if ($request->input('role')) {
+            $query->role($request->input('role'));
+        }
+
         $users = $query->paginate(20);
 
         return response()->json($users);
