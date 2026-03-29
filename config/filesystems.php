@@ -1,5 +1,11 @@
 <?php
 
+$isOnLambda = str_starts_with(env('LAMBDA_TASK_ROOT', ''), '/var/task')
+        || env('AWS_LAMBDA_FUNCTION_VERSION')
+        || env('AWS_LAMBDA_EXEC_WRAPPER')
+        || env('AWS_LAMBDA_RUNTIME_API')
+        || env('AWS_LAMBDA_FUNCTION_NAME') || false;
+
 $pathsToLink = [];
 
 if (env('ON_SERVERLESS')) {
@@ -22,7 +28,7 @@ return [
     |
     */
 
-    'default' => env('FILESYSTEM_DISK', 'local'),
+    'default' => env('FILESYSTEM_DISK', (env('ON_SERVERLESS') || $isOnLambda) ? 'serverless_public' : 'local'),
 
     /*
     |--------------------------------------------------------------------------
@@ -94,14 +100,24 @@ return [
     */
 
     'links' => [
-        ...(function () use ($pathsToLink): array {
-            $links = $pathsToLink;
+        ...(function () use ($pathsToLink, $isOnLambda): array {
+            $links = [];
             $links[public_path('storage')] = in_array(env('FILESYSTEM_DISK', 'local'), ['local', 'private'])
                 ? storage_path('app/private')
                 : storage_path('app/public');
 
             $links[public_path('pv_storage')] = storage_path('app/private');
             $links[public_path('pb_storage')] = storage_path('app/public');
+
+            if ($isOnLambda) {
+                $links[public_path('tmp_storage')] = sys_get_temp_dir() . '/storage';
+            }
+
+            $links = array_merge($links, $pathsToLink);
+
+            if (isset($links[public_path('tmp_storage')]) && !is_dir($links[public_path('tmp_storage')])) {
+                mkdir($links[public_path('tmp_storage')], 0777, true);
+            }
 
             return $links;
         })(),
