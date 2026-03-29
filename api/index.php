@@ -9,8 +9,11 @@
 $_SERVER['DOCUMENT_ROOT'] = dirname(__DIR__);
 
 // Use PATH_INFO for the request path when available (Vercel provides this)
+// Vercel routes /api/(.*) to /api/index.php and sets PATH_INFO to the captured group
+// For example: /api/health-check/database → /api/index.php with PATH_INFO=/health-check/database
+// We need to reconstruct the full REQUEST_URI with /api prefix for Laravel routing
 if (isset($_SERVER['PATH_INFO']) && !empty($_SERVER['PATH_INFO'])) {
-    $_SERVER['REQUEST_URI'] = $_SERVER['PATH_INFO'];
+    $_SERVER['REQUEST_URI'] = '/api' . $_SERVER['PATH_INFO'];
 } elseif (!isset($_SERVER['REQUEST_URI']) || empty($_SERVER['REQUEST_URI'])) {
     // Fallback: construct REQUEST_URI from available data
     $_SERVER['REQUEST_URI'] = $_SERVER['SCRIPT_URL'] ?? '/';
