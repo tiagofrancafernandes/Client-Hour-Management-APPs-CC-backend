@@ -1,5 +1,15 @@
 <?php
 
+$pathsToLink = [];
+
+if (env('ON_SERVERLESS')) {
+    $pathsToLink[public_path('storage')] = sys_get_temp_dir() . '/app/public';
+}
+
+if (!env('ON_SERVERLESS')) {
+    $pathsToLink[public_path('storage')] = storage_path('app/public');
+}
+
 return [
     /*
     |--------------------------------------------------------------------------
@@ -30,7 +40,8 @@ return [
     'disks' => [
         'local' => [
             'driver' => 'local',
-            'root' => storage_path('app/private'),
+            // 'root' => storage_path('app/private'),
+            'root' => env('ON_SERVERLESS') ? sys_get_temp_dir() . '/app' : storage_path('app'),
             'serve' => true,
             'throw' => false,
             'report' => false,
@@ -40,15 +51,24 @@ return [
 
         'public' => [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
+            // 'root' => storage_path('app/public'),
+            // 'url' => rtrim(env('APP_URL', 'http://localhost'), '/') . '/storage',
+            'root' => env('ON_SERVERLESS') ? sys_get_temp_dir() . '/app/public' : storage_path('app/public'),
             'url' => rtrim(env('APP_URL', 'http://localhost'), '/') . '/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
         ],
 
+        'serverless_public' => [
+            'driver' => 'local',
+            'root' => sys_get_temp_dir() . '/app/public',
+            'url' => env('APP_URL') . '/storage',
+            'visibility' => 'public',
+            'throw' => false,
+        ],
+
         's3' => [
-            'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
             'secret' => env('AWS_SECRET_ACCESS_KEY'),
             'region' => env('AWS_DEFAULT_REGION'),
@@ -73,8 +93,8 @@ return [
     */
 
     'links' => [
-        ...(function (): array {
-            $links = [];
+        ...(function () use ($pathsToLink): array {
+            $links = $pathsToLink;
             $links[public_path('storage')] = in_array(env('FILESYSTEM_DISK', 'local'), ['local', 'private'])
                 ? storage_path('app/private')
                 : storage_path('app/public');

@@ -1,6 +1,14 @@
 <?php
 
+$isOnLambda = str_starts_with(env('LAMBDA_TASK_ROOT', ''), '/var/task')
+        || env('AWS_LAMBDA_FUNCTION_VERSION')
+        || env('AWS_LAMBDA_EXEC_WRAPPER')
+        || env('AWS_LAMBDA_RUNTIME_API')
+        || env('AWS_LAMBDA_FUNCTION_NAME') || false;
+
 return [
+    'on_serverless' => (bool) env('ON_SERVERLESS', $isOnLambda),
+    'is_on_lambda' => (bool) $isOnLambda,
     /*
     |--------------------------------------------------------------------------
     | Application Name
@@ -39,6 +47,8 @@ return [
     */
 
     'debug' => (bool) env('APP_DEBUG', false),
+
+    'seed-dummy-data' => (bool) env('SEED_DUMMY_DATA', env('APP_ENV', 'production') !== 'production'),
 
     /*
     |--------------------------------------------------------------------------
