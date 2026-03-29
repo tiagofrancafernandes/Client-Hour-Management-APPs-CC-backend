@@ -104,6 +104,8 @@ class HealthCheckController extends Controller
         $requestedChecks = $request->input('checks');
         $allChecks = ['basic', 'database', 'storage'];
 
+        $checks = is_string($requestedChecks) ? array_map('trim', explode(',', $requestedChecks)) : $requestedChecks;
+
         $checks = is_array($checks) ? $checks : [];
 
         if (!$checks) {
