@@ -95,6 +95,9 @@ return [
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
             // 'application_name' => env('DB_APPLICATION_NAME'),
+            'options' => array_filter([
+                'options' => env('DB_PGSQL_OPTIONS', null),
+            ]),
         ],
 
         'pgsql_test' => [
@@ -111,6 +114,9 @@ return [
             'search_path' => 'public',
             'sslmode' => env('TEST_DB_SSLMODE', env('DB_SSLMODE', 'prefer')),
             // 'application_name' => env('DB_APPLICATION_NAME'),
+            'options' => array_filter([
+                'options' => env('TEST_DB_PGSQL_OPTIONS', null),
+            ]),
         ],
 
         'sqlsrv' => [
