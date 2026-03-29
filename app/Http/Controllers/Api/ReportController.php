@@ -87,12 +87,13 @@ class ReportController extends Controller
 
         $filters = $request->validated();
         $format = $request->input('format', 'excel');
+        $filename = $request->input('filename') ?: null;
 
         if ($format === 'pdf') {
             return $this->reportExportService->exportToPdf($filters);
         }
 
-        return $this->reportExportService->exportToExcel($filters);
+        return $this->reportExportService->exportToExcel($filters, $filename);
     }
 
     private function checkReportPermission(): void

@@ -5,9 +5,11 @@ namespace Tests\Feature\Api;
 use App\Models\Client;
 use App\Models\Tag;
 use App\Models\User;
+use App\Services\ReportExportService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Tests\TestCase;
 
 class PermissionTest extends TestCase
@@ -96,6 +98,24 @@ class PermissionTest extends TestCase
             'tag.view',
             'report.view',
         ]);
+    }
+
+    private function mockReportExportService(): void
+    {
+        $mock = $this->mock(ReportExportService::class);
+
+        $response = new StreamedResponse(function () {
+            echo 'Excel content';
+        });
+
+        $response->headers->set('Content-Disposition', 'attachment; filename="test-mock-report.xlsx"');
+        $response->headers->set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+        $mock->shouldReceive('exportToExcel')
+            ->andReturn($response);
+
+        $mock->shouldReceive('exportToPdf')
+            ->andReturn($response);
     }
 
     // Client Permission Tests
@@ -226,10 +246,15 @@ class PermissionTest extends TestCase
 
     public function testAdminCanExportReportsToExcel(): void
     {
-        $response = $this->actingAs($this->admin)
-            ->get('/api/reports/export?format=excel');
+        $this->mockReportExportService();
 
-        $response->assertSuccessful();
+        $filename = 'test-mock-report.xlsx';
+
+        $response = $this->actingAs($this->admin)
+            ->get('/api/reports/export?format=excel&filename=' . $filename);
+
+        $response->assertOk()
+                ->assertDownload($filename);
     }
 
     public function testAdminCanExportReportsToPdf(): void
@@ -242,20 +267,26 @@ class PermissionTest extends TestCase
 
     public function testViewerCanExportReports(): void
     {
+        $this->mockReportExportService();
+
+        $filename = 'test-mock-report.xlsx';
+
         $response = $this->actingAs($this->viewer)
-            ->get('/api/reports/export?format=excel');
+            ->get('/api/reports/export?format=excel&filename=' . $filename);
 
         $response->assertSuccessful();
     }
 
     public function testUnauthenticatedCannotExportReports(): void
     {
-        $response = $this->get('/api/reports/export?format=excel');
+        $filename = 'test-mock-report.xlsx';
+
+        $response = $this->getJson('/api/reports/export?format=excel&filename=' . $filename);
 
         $response->assertUnauthorized();
     }
 
-    // Unauthenticated Tests
+    /* Unauthenticated Tests */
 
     public function testUnauthenticatedCannotAccessClients(): void
     {

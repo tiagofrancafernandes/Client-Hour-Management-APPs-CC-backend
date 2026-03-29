@@ -14,15 +14,15 @@ class ReportExportService
     ) {
     }
 
-    public function exportToExcel(array $filters): StreamedResponse
+    public function exportToExcel(array $filters, ?string $filename = null): StreamedResponse
     {
         $entries = $this->reportService->getFilteredEntries($filters)->get();
         $timestamp = now()->format('Y-m-d_H-i-s');
-        $filename = "report_{$timestamp}.xlsx";
+        $filename ??= "report_{$timestamp}.xlsx";
 
         header('X-Filename: ' . $filename);
 
-        return SimpleExcelWriter::streamDownload($filename)
+        return SimpleExcelWriter::streamDownload(downloadName: $filename)
             ->addHeader([
                 'Data',
                 'Cliente',
@@ -43,7 +43,7 @@ class ReportExportService
                 $entry->description ?? '',
                 $entry->tags->pluck('name')->implode(', '),
             ]))
-            ->toBrowser();
+            ->{'toBrowser'}();
     }
 
     public function exportToPdf(array $filters): Response
