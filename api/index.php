@@ -30,16 +30,11 @@ if (($_SERVER['REQUEST_URI'] ?? '') === '/api/debug' || ($_SERVER['PATH_INFO'] ?
     exit;
 }
 
-// Use PATH_INFO for the request path when available (Vercel provides this)
-// Vercel routes /api/(.*) to /api/index.php and sets PATH_INFO to the captured group
-// For example: /api/health-check/database → /api/index.php with PATH_INFO=/health-check/database
-// We need to reconstruct the full REQUEST_URI with /api prefix for Laravel routing
-if (isset($_SERVER['PATH_INFO']) && !empty($_SERVER['PATH_INFO'])) {
-    $_SERVER['REQUEST_URI'] = '/api' . $_SERVER['PATH_INFO'];
-} elseif (!isset($_SERVER['REQUEST_URI']) || empty($_SERVER['REQUEST_URI'])) {
-    // Fallback: construct REQUEST_URI from available data
-    $_SERVER['REQUEST_URI'] = $_SERVER['SCRIPT_URL'] ?? '/';
-}
+// Use REQUEST_URI as-is from Vercel - it already contains the full path with /api prefix
+// Vercel sets both REQUEST_URI and PATH_INFO correctly:
+// - REQUEST_URI = /api/health-check/database (with query string if present)
+// - PATH_INFO = /health-check/database (just the captured path without /api)
+// Laravel routing expects REQUEST_URI to be properly set
 
 // Ensure REQUEST_URI is properly formatted for Laravel routing
 if (empty($_SERVER['REQUEST_URI']) || $_SERVER['REQUEST_URI'] === 'undefined') {
