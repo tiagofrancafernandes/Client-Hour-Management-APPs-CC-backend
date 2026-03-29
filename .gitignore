@@ -41,3 +41,16 @@ _ide_helper*
 
 /*session-id*
 /*session_id*
+
+.env*
+!.env*example*
+!.example*.env
+
+*.md
+!AGENTS.md
+!AGENT.md
+!CLAUDE.md
+!MCP.md
+!GEMINI.md
+!UNIVERSAL-CODE-STYLE-RULES.md
+!README*.md
