@@ -7,9 +7,8 @@
 
 // Set proper base path for Vercel serverless environment
 $_SERVER['DOCUMENT_ROOT'] = dirname(__DIR__);
-$uri = $_SERVER['REQUEST_URI'] ?? '/';
 
-$_SERVER['REQUEST_URI'] = str_starts_with($uri, '/api/api') ? substr($uri, 8) : $uri;
+$_SERVER['REQUEST_URI'] = $_SERVER['REQUEST_URI'] ?? '/';
 
 // Call the main Laravel entry point
 require_once dirname(__DIR__) . '/public/index.php';
