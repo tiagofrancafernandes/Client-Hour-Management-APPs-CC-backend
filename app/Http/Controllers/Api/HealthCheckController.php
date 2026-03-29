@@ -47,6 +47,10 @@ class HealthCheckController extends Controller
             $checks['status'] = $tableExists ? 'up' : 'degraded';
         } catch (\Throwable $e) {
             $checks['database']['error'] = $e->getMessage();
+
+            if (config('app.debug')) {
+                $checks['database']['trace'] = $e->getTrace();
+            }
         }
 
         $statusCode = $checks['status'] === 'up' ? 200 : 503;
