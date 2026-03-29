@@ -86,6 +86,34 @@ return [
             'url' => env('DB_URL'),
         ],
 
+        'pgsql_dsn' => [
+            'driver' => 'pgsql',
+            'url' => null,
+            'database' => env('DB_DATABASE', 'laravel'),
+            'dsn' => env('DB_DSN'),
+            'username' => env('DB_USERNAME'),
+            'password' => env('DB_PASSWORD'),
+        ],
+
+        'pgsql_neon' => [
+            'driver' => 'pgsql',
+            'host' => env('DB_HOST'),
+            'port' => env('DB_PORT', 5432),
+            'database' => env('DB_DATABASE'),
+            'username' => env('DB_USERNAME'),
+            'password' => env('DB_PASSWORD'),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'public',
+            'sslmode' => env('DB_SSLMODE', 'require'),
+
+            'options' => [
+                // hack seguro sem depender da constante
+                1002 => env('DB_PG_OPTIONS'),
+            ],
+        ],
+
         'pgsql' => [
             'driver' => 'pgsql',
             'url' => env('DB_URL'),
