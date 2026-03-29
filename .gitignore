@@ -54,3 +54,5 @@ _ide_helper*
 !GEMINI.md
 !UNIVERSAL-CODE-STYLE-RULES.md
 !README*.md
+.vercel
+.env*.local

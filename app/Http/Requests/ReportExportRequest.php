@@ -22,6 +22,7 @@ class ReportExportRequest extends FormRequest
             'tags' => ['nullable', 'array'],
             'tags.*' => ['integer', 'exists:tags,id'],
             'type' => ['nullable', 'string', 'in:credit,debit'],
+            'filename' => ['nullable', 'string'],
         ];
     }
 }
