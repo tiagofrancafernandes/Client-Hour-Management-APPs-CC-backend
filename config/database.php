@@ -84,6 +84,11 @@ return [
         'pgsql_url' => [
             'driver' => 'pgsql',
             'url' => env('DB_URL'),
+
+            'options' => [
+                // hack seguro sem depender da constante
+                1002 => env('DB_PG_OPTIONS'),
+            ],
         ],
 
         'pgsql_dsn' => [
