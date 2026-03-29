@@ -113,10 +113,9 @@ return [
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'require'),
 
-            'options' => [
-                // hack seguro sem depender da constante
+            'options' => array_filter([
                 1002 => env('DB_PG_OPTIONS'),
-            ],
+            ]),
         ],
 
         'pgsql' => [
@@ -134,7 +133,7 @@ return [
             'sslmode' => env('DB_SSLMODE', 'prefer'),
             // 'application_name' => env('DB_APPLICATION_NAME'),
             'options' => array_filter([
-                'options' => env('DB_PGSQL_OPTIONS', null),
+                1002 => env('DB_PG_OPTIONS'),
             ]),
         ],
 
@@ -153,7 +152,7 @@ return [
             'sslmode' => env('TEST_DB_SSLMODE', env('DB_SSLMODE', 'prefer')),
             // 'application_name' => env('DB_APPLICATION_NAME'),
             'options' => array_filter([
-                'options' => env('TEST_DB_PGSQL_OPTIONS', null),
+                1002 => env('DB_PG_OPTIONS'),
             ]),
         ],
 
