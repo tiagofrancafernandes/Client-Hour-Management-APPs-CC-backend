@@ -22,7 +22,10 @@ class VerifyCsrfToken extends IlluminateVerifyCsrfToken
      *
      * @var array<int, string>
      */
-    protected $except = [];
+    protected $except = [
+        'api/health-check/*',
+        'api/debug/*',
+    ];
 
     /**
      * The globally ignored URIs that should be excluded from CSRF verification.

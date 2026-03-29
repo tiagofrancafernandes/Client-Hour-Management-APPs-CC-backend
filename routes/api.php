@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\DebugConfigController;
 use App\Http\Controllers\Api\HealthCheckController;
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\ClientUserController;
@@ -25,6 +26,12 @@ Route::prefix('health-check')->group(function () {
     Route::get('/storage', [HealthCheckController::class, 'storage']);
     Route::get('/all', [HealthCheckController::class, 'all']);
     Route::post('/all', [HealthCheckController::class, 'all']);
+});
+
+// Debug Config Routes (dev authentication required)
+Route::prefix('debug')->group(function () {
+    Route::get('/config', DebugConfigController::class);
+    Route::post('/config', DebugConfigController::class);
 });
 
 Route::prefix('auth')->group(function () {
