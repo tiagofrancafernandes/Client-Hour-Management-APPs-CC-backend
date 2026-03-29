@@ -13,6 +13,8 @@ class DebugConfigController extends Controller
     {
         $this->validateDevAuth();
 
+        $hasAny = $request->has('config') || $request->has('env') || $request->has('server');
+
         $result = [];
 
         if ($request->has('config')) {
@@ -27,7 +29,7 @@ class DebugConfigController extends Controller
             $result['server'] = $this->getServerValues($request->input('server'));
         }
 
-        if (empty($result)) {
+        if (!$hasAny) {
             return response()->json([
                 'status' => 'ok',
                 'message' => 'No parameters provided. Use config, env, or server query parameters.',
@@ -37,30 +39,7 @@ class DebugConfigController extends Controller
         return response()->json($result);
     }
 
-    private function validateDevAuth(): void
-    {
-        $devAuthAllowed = Config::get('app.dev-auth-allowed', false);
-
-        if (! $devAuthAllowed) {
-            abort(403, 'Debug access is not enabled');
-        }
-
-        $token = $this->getTokenFromRequest();
-        $configuredToken = Config::get('app.dev-auth-token');
-
-        if (! $token || $token !== $configuredToken) {
-            abort(401, 'Invalid or missing authentication token');
-        }
-    }
-
-    private function getTokenFromRequest(): ?string
-    {
-        $request = request();
-
-        return $request->header('X-Dev-Token') ?? $request->input('token');
-    }
-
-    private function getConfigValues($configInput): mixed
+    protected function getConfigValues($configInput): mixed
     {
         if (is_array($configInput)) {
             $result = [];
@@ -75,12 +54,12 @@ class DebugConfigController extends Controller
         return $this->getNestedConfig($configInput);
     }
 
-    private function getNestedConfig(string $key): mixed
+    protected function getNestedConfig(string $key): mixed
     {
         return Config::get($key);
     }
 
-    private function getEnvValues($envInput): mixed
+    protected function getEnvValues($envInput): mixed
     {
         if ($envInput === 'all') {
             return $this->filterSensitiveEnv($_ENV);
@@ -99,7 +78,7 @@ class DebugConfigController extends Controller
         return $this->filterSensitiveValue($envInput, env($envInput));
     }
 
-    private function getServerValues($serverInput): mixed
+    protected function getServerValues($serverInput): mixed
     {
         if ($serverInput === 'all') {
             return $this->filterSensitiveServer($_SERVER);
@@ -108,7 +87,7 @@ class DebugConfigController extends Controller
         return $_SERVER[$serverInput] ?? null;
     }
 
-    private function filterSensitiveEnv(array $env): array
+    protected function filterSensitiveEnv(array $env): array
     {
         $sensitiveKeys = [
             'APP_KEY',
@@ -146,7 +125,7 @@ class DebugConfigController extends Controller
         return $filtered;
     }
 
-    private function filterSensitiveValue(string $key, mixed $value): mixed
+    protected function filterSensitiveValue(string $key, mixed $value): mixed
     {
         $sensitiveKeys = [
             'APP_KEY',
@@ -170,7 +149,7 @@ class DebugConfigController extends Controller
         return $value;
     }
 
-    private function filterSensitiveServer(array $server): array
+    protected function filterSensitiveServer(array $server): array
     {
         $sensitivePatterns = [
             'PASSWORD',
