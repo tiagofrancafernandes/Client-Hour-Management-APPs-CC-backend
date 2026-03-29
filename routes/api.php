@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\HealthCheckController;
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\ClientUserController;
 use App\Http\Controllers\Api\CreditPurchaseController;
@@ -16,6 +17,15 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\WalletController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+// Health Check Routes (no authentication required)
+Route::prefix('health-check')->group(function () {
+    Route::get('/basic', [HealthCheckController::class, 'basic']);
+    Route::get('/database', [HealthCheckController::class, 'database']);
+    Route::get('/storage', [HealthCheckController::class, 'storage']);
+    Route::get('/all', [HealthCheckController::class, 'all']);
+    Route::post('/all', [HealthCheckController::class, 'all']);
+});
 
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
