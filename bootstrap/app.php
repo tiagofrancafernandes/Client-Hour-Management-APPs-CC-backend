@@ -23,6 +23,11 @@ if ($isOnLambda) {
 $customBootstrap = getenv('CUSTOM_BOOTSTRAP_PATH') ?: null;
 $customBootstrap ??= $_SERVER['CUSTOM_BOOTSTRAP_PATH'] ?? $_ENV['CUSTOM_BOOTSTRAP_PATH'] ?? null;
 
+if ($isOnLambda && !$customBootstrap) {
+    $customBootstrap = '/tmp';
+    putenv('CUSTOM_BOOTSTRAP_PATH=/tmp');
+}
+
 $app = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         api: __DIR__ . '/../routes/api.php',
@@ -74,7 +79,18 @@ $app = Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
-    })->create();
+    })
+    ->create();
+
+if ($customBootstrap && !is_dir($customBootstrap)) {
+    mkdir($customBootstrap, 0777, true);
+}
+
+if ($isOnLambda) {
+    is_dir('/tmp/storage') || mkdir('/tmp/storage', 0777, true);
+    is_dir('/tmp/views') || mkdir('/tmp/views', 0777, true);
+    is_dir('/tmp/ssr') || mkdir('/tmp/ssr', 0777, true);
+}
 
 if ($customBootstrap) {
     $app->useBootstrapPath(

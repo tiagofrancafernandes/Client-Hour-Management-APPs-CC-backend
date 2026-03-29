@@ -40,7 +40,7 @@
         "APP_EVENTS_CACHE": "/tmp/events.php",
         "APP_PACKAGES_CACHE": "/tmp/packages.php",
         "OLD_APP_ROUTES_CACHE": "/tmp/routes.php",
-        "APP_ROUTES_CACHE": "",
+        "APP_ROUTES_CACHE": "/tmp/routes.php",
         "APP_SERVICES_CACHE": "/tmp/services.php",
         "VIEW_COMPILED_PATH": "/tmp/views",
         "CUSTOM_BOOTSTRAP_PATH": "/tmp",
