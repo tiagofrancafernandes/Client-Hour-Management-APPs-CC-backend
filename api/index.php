@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Vercel Serverless Function Entry Point
+ * Vercel Serverless Function Entry Point for Laravel API Routes
  * Routes all requests to the Laravel application
  */
 
@@ -11,30 +11,16 @@ $_SERVER['DOCUMENT_ROOT'] = dirname(__DIR__);
 // Use PATH_INFO for the request path when available (Vercel provides this)
 if (isset($_SERVER['PATH_INFO']) && !empty($_SERVER['PATH_INFO'])) {
     $_SERVER['REQUEST_URI'] = $_SERVER['PATH_INFO'];
+} elseif (!isset($_SERVER['REQUEST_URI']) || empty($_SERVER['REQUEST_URI'])) {
+    // Fallback: construct REQUEST_URI from available data
+    $_SERVER['REQUEST_URI'] = $_SERVER['SCRIPT_URL'] ?? '/';
 }
 
-// Fallback: construct REQUEST_URI from available data
-if (!isset($_SERVER['REQUEST_URI']) || empty($_SERVER['REQUEST_URI'])) {
-    $request_uri = $_SERVER['SCRIPT_URL'] ?? $_SERVER['REQUEST_URI'] ?? '/';
-    $_SERVER['REQUEST_URI'] = $request_uri;
-}
-
-// Strip /api prefix if it's at the start (we're being called from /api/index.php)
-// This converts /api/health-check/database → /health-check/database
-if (strpos($_SERVER['REQUEST_URI'], '/api') === 0) {
-    $_SERVER['REQUEST_URI'] = substr($_SERVER['REQUEST_URI'], 4);
-
-    // Ensure REQUEST_URI starts with / for routing
-    if (empty($_SERVER['REQUEST_URI'])) {
-        $_SERVER['REQUEST_URI'] = '/';
-    } elseif ($_SERVER['REQUEST_URI'][0] !== '/') {
-        $_SERVER['REQUEST_URI'] = '/' . $_SERVER['REQUEST_URI'];
-    }
-}
-
-// Ensure REQUEST_URI is never empty
-if (empty($_SERVER['REQUEST_URI'])) {
+// Ensure REQUEST_URI is properly formatted for Laravel routing
+if (empty($_SERVER['REQUEST_URI']) || $_SERVER['REQUEST_URI'] === 'undefined') {
     $_SERVER['REQUEST_URI'] = '/';
+} elseif ($_SERVER['REQUEST_URI'][0] !== '/') {
+    $_SERVER['REQUEST_URI'] = '/' . $_SERVER['REQUEST_URI'];
 }
 
 // Call the main Laravel entry point
