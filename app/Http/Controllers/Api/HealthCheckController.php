@@ -30,7 +30,8 @@ class HealthCheckController extends Controller
             'status' => 'down',
             'database' => [
                 'connection' => false,
-                'users_table_exists' => false,
+                'basic_query' => null,
+                'basic_query_success' => false,
             ],
             'timestamp' => now()->toIso8601String(),
         ];
@@ -43,6 +44,8 @@ class HealthCheckController extends Controller
             // Check if users table exists
             $tableExists = DB::getSchemaBuilder()->hasTable('users');
             $checks['database']['users_table_exists'] = $tableExists;
+            $checks['database']['basic_query'] = DB::select('select 1');
+            $checks['database']['basic_query_success'] = boolval($checks['database']['basic_query']);
 
             $checks['status'] = $tableExists ? 'up' : 'degraded';
         } catch (\Throwable $e) {
@@ -135,6 +138,10 @@ class HealthCheckController extends Controller
                 'status' => 'down',
                 'connection' => false,
                 'users_table_exists' => false,
+                'database' => [
+                    'basic_query' => null,
+                    'basic_query_success' => false,
+                ],
             ];
 
             try {
@@ -143,6 +150,9 @@ class HealthCheckController extends Controller
 
                 $tableExists = DB::getSchemaBuilder()->hasTable('users');
                 $dbCheck['users_table_exists'] = $tableExists;
+
+                $checks['database']['basic_query'] = DB::select('select 1');
+                $checks['database']['basic_query_success'] = boolval($checks['database']['basic_query']);
 
                 $dbCheck['status'] = $tableExists ? 'up' : 'degraded';
 
