@@ -54,5 +54,6 @@ _ide_helper*
 !GEMINI.md
 !UNIVERSAL-CODE-STYLE-RULES.md
 !README*.md
+!resources/views/vendor/mail/markdown/*.md
 .vercel
 .env*.local

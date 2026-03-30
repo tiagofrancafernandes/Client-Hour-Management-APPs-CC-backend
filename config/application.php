@@ -57,4 +57,7 @@ return [
             'default_role' => null,
         ],
     ],
+    'mail' => [
+        'footer_name' => env('MAIL_FOOTER_NAME', env('APP_NAME', 'Hours Ledger Team')),
+    ],
 ];

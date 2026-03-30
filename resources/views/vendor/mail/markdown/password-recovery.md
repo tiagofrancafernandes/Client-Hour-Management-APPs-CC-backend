@@ -5,8 +5,8 @@ Hi,
 
 We received a request to reset the password for your Hours Ledger account. If you made this request, please use the code below to reset your password:
 
-@component('mail::panel')
-**Verification Code: {{ $token }}**
+@component('mail::button', ['url' => ''])
+Verification Code: **{{ $token }}**
 @endcomponent
 
 Simply enter this 6-digit code in the password recovery form. This code will expire in 30 minutes.
