@@ -1,5 +1,42 @@
 <?php
 
+if (! function_exists('ensure_string')) {
+    /**
+     * Ensure that the given value is returned as an string.
+     *
+     * If the value is already an string, it will be returned unchanged.
+     * Otherwise, the value will be wrapped in a new string.
+     *
+     * @param mixed $value
+     * @param ?bool $allowJsonEncode
+     * @param ?int $flags
+     *
+     * @return string
+     */
+    function ensure_string($value = '', ?bool $allowJsonEncode = null, ?int $flags = 64): string
+    {
+        $flags ??= 64;
+
+        if (is_string($value) || is_scalar($value)) {
+            return strval($value);
+        }
+
+        if (is_object($value) && $allowJsonEncode) {
+            return is_a($value, Stringable::class) ? strval($value) : json_encode($value, $flags);
+        }
+
+        if (is_object($value) && !$allowJsonEncode) {
+            return is_a($value, Stringable::class) ? strval($value) : '';
+        }
+
+        if (is_array($value) && $allowJsonEncode) {
+            return json_encode($value, $flags);
+        }
+
+        return $allowJsonEncode ? json_encode($value, $flags) : '';
+    }
+}
+
 if (! function_exists('ensure_array')) {
     /**
      * Ensure that the given value is returned as an array.
