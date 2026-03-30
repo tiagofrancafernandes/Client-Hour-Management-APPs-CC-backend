@@ -19,6 +19,8 @@ use App\Http\Controllers\Api\WalletController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/', fn (Request $request) => DebugConfigController::rootPathInfo($request, __FILE__ . ':' . __LINE__));
+
 // Health Check Routes (no authentication required)
 Route::prefix('health-check')->group(function () {
     Route::get('/basic', [HealthCheckController::class, 'basic']);

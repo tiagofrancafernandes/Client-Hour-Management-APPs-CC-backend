@@ -181,4 +181,26 @@ class DebugConfigController extends Controller
 
         return $filtered;
     }
+
+    public static function rootPathInfo(Request $request, ?string $file = null): array
+    {
+        $file = $file ?: __FILE__;
+
+        return [
+            'path' => $request->path(),
+            'file' => $file ? str_replace(base_path() . '/', '', $file) : null,
+            'fullUrl' => $request->fullUrl(),
+            'url' => $request->url(),
+            'Laravel' => app()->version(),
+            'version' => value(function () {
+                $branch = config('dev-plug.project-state.git.branch');
+                $commitShaShort = config('dev-plug.project-state.git.commit_sha_short');
+
+                return implode(':', array_filter([
+                    $branch,
+                    $commitShaShort,
+                ])) ?: null;
+            }),
+        ];
+    }
 }
