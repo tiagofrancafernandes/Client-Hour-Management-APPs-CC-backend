@@ -18,7 +18,7 @@ Simply enter this 6-digit code in the password recovery form. This code will exp
 
 If you have any questions, please contact our support team.
 
-Best regards,
+Best regards, <br>
 **{{ config('application.mail.footer_name') }}**
 
 @endcomponent
