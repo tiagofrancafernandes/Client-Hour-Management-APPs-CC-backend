@@ -1,23 +1,36 @@
 <?php
 
 $disabledResources = (array) value(function () {
-    $values = array_values(
+    /* For easy understanding */
+    $DISABLED = true;
+    $NOT_DISABLED = false;
+
+    $hardDisabled = array_keys(array_filter([
+        'self_recovery_password' => $NOT_DISABLED,
+        'self_register' => $DISABLED,
+    ]));
+
+    $values = array_merge(array_values(
         array_filter(array_map('trim', explode(';', ensure_string(env('DISABLED_RESOURCES')))))
-    );
+    ), $hardDisabled);
 
     return $values;
 });
 
 $availabledResources = (array) value(function () use ($disabledResources) {
-    $defaultAvailable = array_keys(array_filter([
-        // 'abc' => true,
-        // 'def' => false,
-        // 'ghi' => true,
+    /* For easy understanding */
+    $ENABLED = true;
+    $DISABLED = false;
+
+    $hardAvailable = array_keys(array_filter([
+        // 'abc' => $ENABLED,
+        // 'def' => $DISABLED,
+        // 'ghi' => $ENABLED,
     ]));
 
     $available = array_merge(array_values(
         array_filter(array_map('trim', explode(';', ensure_string(env('AVAILABLED_RESOURCES')))))
-    ), $defaultAvailable);
+    ), $hardAvailable);
 
     $available = array_filter(array_combine($available, $available));
 
