@@ -253,15 +253,19 @@ class AuthController extends Controller
         }
 
         $request->validate([
-            'email' => ['required', 'email', 'exists:users,email'],
+            'email' => ['required', 'email'],
         ]);
 
-        $token = $this->authService->createEmailVerificationToken(
+        $emailExists = User::where('email', $request->input('email'))->exists();
+
+        $token = $emailExists ? $this->authService->createEmailVerificationToken(
             $request->input('email'),
             'password_reset'
-        );
+        ) : null;
 
-        $this->authService->sendPasswordRecoveryEmail($token);
+        if ($emailExists && $token) {
+            $this->authService->sendPasswordRecoveryEmail($token);
+        }
 
         return response()->json([
             'message' => 'If the email exists, a recovery link will be sent',
