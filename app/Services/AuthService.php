@@ -163,8 +163,8 @@ class AuthService
         $authConfig = config('application.resources.auth');
 
         return [
-            'self_register' => (bool) $authConfig['self_register'],
-            'self_recovery_password' => (bool) $authConfig['self_recovery_password'],
+            'self_register' => boolval($authConfig['self_register'] ?? false),
+            'self_recovery_password' => boolval($authConfig['self_recovery_password'] ?? false),
         ];
     }
 

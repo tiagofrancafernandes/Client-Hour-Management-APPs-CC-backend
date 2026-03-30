@@ -41,7 +41,7 @@ final class VerifyEmailRegistration extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.verify-email-registration',
+            markdown: 'emails.verify-email-registration',
             with: [
                 'name' => $this->name,
                 'token' => $this->token,

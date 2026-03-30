@@ -34,12 +34,13 @@ final class SendVerifyEmailRegistrationJob implements ShouldQueue
      */
     public function handle(): void
     {
-        Mail::to($this->email)->send(
-            new VerifyEmailRegistration(
-                email: $this->email,
-                token: $this->token,
-                name: $this->name,
-            ),
+        /** @var \Illuminate\Mail\Mailable|\Illuminate\Contracts\Mail\Mailable $mail */
+        $mail = new VerifyEmailRegistration(
+            email: $this->email,
+            token: $this->token,
+            name: $this->name,
         );
+
+        Mail::to($this->email)->send($mail);
     }
 }

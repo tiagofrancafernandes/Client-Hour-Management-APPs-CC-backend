@@ -30,7 +30,7 @@ Route::prefix('health-check')->group(function () {
     Route::post('/all', [HealthCheckController::class, 'all']);
 });
 
-// Debug Config Routes (dev authentication required)
+/* Debug Config Routes (dev authentication required) */
 Route::prefix('debug')->group(function () {
     Route::get('/config', DebugConfigController::class);
     Route::post('/config', DebugConfigController::class);

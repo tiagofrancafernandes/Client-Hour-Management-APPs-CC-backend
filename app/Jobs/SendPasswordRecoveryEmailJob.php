@@ -33,11 +33,12 @@ final class SendPasswordRecoveryEmailJob implements ShouldQueue
      */
     public function handle(): void
     {
-        Mail::to($this->email)->send(
-            new PasswordRecoveryEmail(
-                email: $this->email,
-                token: $this->token,
-            ),
+        /** @var \Illuminate\Mail\Mailable|\Illuminate\Contracts\Mail\Mailable $mail */
+        $mail = new PasswordRecoveryEmail(
+            email: $this->email,
+            token: $this->token,
         );
+
+        Mail::to($this->email)->send($mail);
     }
 }

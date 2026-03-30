@@ -1,12 +1,24 @@
+@component('mail::message')
+# Password Reset Request
+
 Hi,
 
-We received a request to reset your password. If you didn't make this request, you can safely ignore this email.
+We received a request to reset the password for your Hours Ledger account. If you made this request, please use the code below to reset your password:
 
-To reset your password, please use the verification code below:
-
+@component('mail::panel')
 **Verification Code: {{ $token }}**
+@endcomponent
 
-This code will expire in 30 minutes.
+Simply enter this 6-digit code in the password recovery form. This code will expire in 30 minutes.
 
-Best regards,
-Hours Ledger Team
+**For your security:**
+- Never share this code with anyone
+- Hours Ledger staff will never ask for this code
+- If you didn't request a password reset, please ignore this email
+
+If you have any questions, please contact our support team.
+
+Best regards,  
+**Hours Ledger Team**
+
+@endcomponent

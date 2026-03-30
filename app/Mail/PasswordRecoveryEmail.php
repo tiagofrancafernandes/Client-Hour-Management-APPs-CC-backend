@@ -40,7 +40,7 @@ final class PasswordRecoveryEmail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.password-recovery',
+            markdown: 'emails.password-recovery',
             with: [
                 'token' => $this->token,
                 'email' => $this->email,
