@@ -31,12 +31,18 @@ class AuthService
 
     /**
      * Create an email verification token for registration or password recovery
+     * Replaces any existing token for the same email and type to avoid duplicates
      */
     public function createEmailVerificationToken(
         string $email,
         string $type = 'registration'
     ): EmailVerificationToken {
         $expiresAt = now()->addMinutes(self::TOKEN_EXPIRATION_MINUTES);
+
+        // Delete any existing tokens for this email and type
+        EmailVerificationToken::where('email', $email)
+            ->where('type', $type)
+            ->delete();
 
         $token = EmailVerificationToken::create([
             'email' => $email,
