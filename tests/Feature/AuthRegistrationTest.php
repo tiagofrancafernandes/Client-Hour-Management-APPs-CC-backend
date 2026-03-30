@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\SendVerifyEmailRegistrationJob;
 use App\Models\EmailVerificationToken;
 use App\Models\User;
 use App\Services\AuthService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class AuthRegistrationTest extends TestCase
@@ -191,5 +193,23 @@ class AuthRegistrationTest extends TestCase
             'self_register' => true,
             'self_recovery_password' => false,
         ]);
+    }
+
+    /**
+     * Test that registration email job is dispatched
+     */
+    public function testRegistrationEmailJobIsDispatched(): void
+    {
+        Queue::fake();
+        config(['application.resources.auth.self_register' => true]);
+
+        $this->postJson('/api/auth/register', [
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ]);
+
+        Queue::assertPushed(SendVerifyEmailRegistrationJob::class);
     }
 }

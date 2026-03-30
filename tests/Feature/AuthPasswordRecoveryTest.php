@@ -2,11 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\SendPasswordRecoveryEmailJob;
 use App\Models\EmailVerificationToken;
 use App\Models\User;
 use App\Services\AuthService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class AuthPasswordRecoveryTest extends TestCase
@@ -197,5 +199,26 @@ class AuthPasswordRecoveryTest extends TestCase
 
         $response->assertStatus(422);
         $response->assertJson(['message' => 'Invalid or expired recovery token']);
+    }
+
+    /**
+     * Test that password recovery email job is dispatched
+     */
+    public function testPasswordRecoveryEmailJobIsDispatched(): void
+    {
+        Queue::fake();
+        config(['application.resources.auth.self_recovery_password' => true]);
+
+        User::create([
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'password' => Hash::make('password123'),
+        ]);
+
+        $this->postJson('/api/auth/password-recovery/request', [
+            'email' => 'test@example.com',
+        ]);
+
+        Queue::assertPushed(SendPasswordRecoveryEmailJob::class);
     }
 }

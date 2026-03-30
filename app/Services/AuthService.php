@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Jobs\SendPasswordRecoveryEmailJob;
+use App\Jobs\SendVerifyEmailRegistrationJob;
 use App\Models\EmailVerificationToken;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -158,5 +160,30 @@ class AuthService
             'self_register' => (bool) $authConfig['self_register'],
             'self_recovery_password' => (bool) $authConfig['self_recovery_password'],
         ];
+    }
+
+    /**
+     * Send registration verification email via job queue
+     */
+    public function sendRegistrationVerificationEmail(
+        EmailVerificationToken $token,
+        string $name
+    ): void {
+        SendVerifyEmailRegistrationJob::dispatch(
+            email: $token->email,
+            token: $token->token,
+            name: $name,
+        );
+    }
+
+    /**
+     * Send password recovery email via job queue
+     */
+    public function sendPasswordRecoveryEmail(EmailVerificationToken $token): void
+    {
+        SendPasswordRecoveryEmailJob::dispatch(
+            email: $token->email,
+            token: $token->token,
+        );
     }
 }

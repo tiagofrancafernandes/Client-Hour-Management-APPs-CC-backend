@@ -138,6 +138,11 @@ class AuthController extends Controller
             'registration'
         );
 
+        $this->authService->sendRegistrationVerificationEmail(
+            $token,
+            $request->input('name')
+        );
+
         return response()->json([
             'message' => 'Verification email has been sent',
             'email' => $request->input('email'),
@@ -251,10 +256,12 @@ class AuthController extends Controller
             'email' => ['required', 'email', 'exists:users,email'],
         ]);
 
-        $this->authService->createEmailVerificationToken(
+        $token = $this->authService->createEmailVerificationToken(
             $request->input('email'),
             'password_reset'
         );
+
+        $this->authService->sendPasswordRecoveryEmail($token);
 
         return response()->json([
             'message' => 'If the email exists, a recovery link will be sent',
