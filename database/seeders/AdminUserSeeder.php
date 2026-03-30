@@ -14,13 +14,19 @@ class AdminUserSeeder extends Seeder
      */
     public function run(): void
     {
+        $defaultPassword = 'power@123';
+
+        if (app()->isProduction() || !config('app.seed-dummy-data', false)) {
+            $defaultPassword = str()->random(10);
+        }
+
         // Create or update super admin user
         $admin = User::updateOrCreate(
             ['email' => 'admin@mail.com'],
             [
                 'name' => 'Admin User',
                 'email' => 'admin@mail.com',
-                'password' => Hash::make('power@123'),
+                'password' => Hash::make($defaultPassword),
                 'email_verified_at' => now(),
             ]
         );
@@ -36,6 +42,6 @@ class AdminUserSeeder extends Seeder
 
         $this->command->info('Admin user created/updated successfully!');
         $this->command->info('Email: admin@mail.com');
-        $this->command->info('Password: power@123');
+        $this->command->info('Password: ' . $defaultPassword);
     }
 }

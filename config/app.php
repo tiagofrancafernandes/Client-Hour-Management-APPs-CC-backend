@@ -48,7 +48,7 @@ return [
 
     'debug' => (bool) env('APP_DEBUG', false),
 
-    'seed-dummy-data' => (bool) env('SEED_DUMMY_DATA', env('APP_ENV', 'production') !== 'production'),
+    'seed-dummy-data' => (bool) env('SEED_DUMMY_DATA', false),
 
     'dev-auth-allowed' => (env('DEV_AUTH_ALLOWED', true) && env('DEV_AUTH_TOKEN')),
     'dev-auth-token' => env('DEV_AUTH_TOKEN'),

@@ -23,7 +23,7 @@ class DevDummyDataSeeder extends Seeder
      */
     public function run(): void
     {
-        if (app()->isProduction()) {
+        if (!config('app.seed-dummy-data', false)) {
             return;
         }
 
