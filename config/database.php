@@ -84,20 +84,9 @@ return [
         'pgsql_url' => [
             'driver' => 'pgsql',
             'url' => env('DB_URL'),
-
-            'options' => [
-                // hack seguro sem depender da constante
+            'options' => array_filter([
                 1002 => env('DB_PG_OPTIONS'),
-            ],
-        ],
-
-        'pgsql_dsn' => [
-            'driver' => 'pgsql',
-            'url' => null,
-            'database' => env('DB_DATABASE', 'laravel'),
-            'dsn' => env('DB_DSN'),
-            'username' => env('DB_USERNAME'),
-            'password' => env('DB_PASSWORD'),
+            ]),
         ],
 
         'pgsql_neon' => [
