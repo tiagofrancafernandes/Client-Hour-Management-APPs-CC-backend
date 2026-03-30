@@ -29,6 +29,7 @@ class RolesAndPermissionsSeeder extends Seeder
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         $isProduction = app()->environment('production');
+        $debugOn = config('app.debug', false);
 
         // Create Permissions
         $permissions = [
@@ -159,7 +160,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'report.view_any',
         ]);
 
-        if (!$isProduction) {
+        if (!$isProduction || $debugOn) {
             dump('admin permissions', $admin->getAllPermissions()->pluck('name')->toArray());
             echo PHP_EOL;
         }
@@ -202,7 +203,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'report.view_any',
         ]);
 
-        if (!$isProduction) {
+        if (!$isProduction || $debugOn) {
             dump('manager permissions', $manager->getAllPermissions()->pluck('name')->toArray());
             echo PHP_EOL;
         }
@@ -232,7 +233,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'report.view',
         ]);
 
-        if (!$isProduction) {
+        if (!$isProduction || $debugOn) {
             dump('operator permissions', $operator->getAllPermissions()->pluck('name')->toArray());
             echo PHP_EOL;
         }
@@ -269,6 +270,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'credit_purchase.view',
         ]);
 
-        dump('customer permissions', $customer->getAllPermissions()->pluck('name')->toArray());
+        if (!$isProduction || $debugOn) {
+            dump('customer permissions', $customer->getAllPermissions()->pluck('name')->toArray());
+            echo PHP_EOL;
+        }
     }
 }

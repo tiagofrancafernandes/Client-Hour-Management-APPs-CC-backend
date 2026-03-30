@@ -41,4 +41,37 @@ return [
             'function_name' => env('AWS_LAMBDA_FUNCTION_NAME'),
         ],
     ],
+    'defaults' => [
+        'users' => [
+            'superadmin' => [
+                'name' => value(function () {
+                    $value = filter_var(env('DEFAULT_SUPERADMIN_NAME'), FILTER_DEFAULT, FILTER_NULL_ON_FAILURE);
+
+                    if (!is_string($value) || strlen(trim($value)) < 6) {
+                        return 'System Admin';
+                    }
+
+                    return $value;
+                }),
+                'email' => value(function () {
+                    $value = filter_var(env('DEFAULT_SUPERADMIN_EMAIL'), FILTER_VALIDATE_EMAIL, FILTER_NULL_ON_FAILURE);
+
+                    if (!is_string($value) || !trim($value)) {
+                        return 'admin@mail.com';
+                    }
+
+                    return $value;
+                }),
+                'password' => value(function () {
+                    $value = filter_var(env('DEFAULT_SUPERADMIN_PASSWORD'), FILTER_DEFAULT, FILTER_NULL_ON_FAILURE);
+
+                    if (!is_string($value) || strlen(trim($value)) < 6) {
+                        return null;
+                    }
+
+                    return $value;
+                }),
+            ],
+        ],
+    ],
 ];

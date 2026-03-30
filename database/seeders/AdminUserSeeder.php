@@ -14,19 +14,29 @@ class AdminUserSeeder extends Seeder
      */
     public function run(): void
     {
-        $defaultPassword = 'power@123';
+        $this->insertSuperAdmin();
+    }
 
-        if (app()->isProduction() || !config('app.seed-dummy-data', false)) {
-            $defaultPassword = str()->random(10);
+    protected function insertSuperAdmin(): void
+    {
+        $superAdminData = \Arr::wrap(config('dev-plug.defaults.users.superadmin'));
+
+        $superAdminData['name'] = ($superAdminData['name'] ?? null) ?: 'System Admin';
+        $superAdminData['email'] = ($superAdminData['email'] ?? null) ?: 'admin@mail.com';
+        $superAdminData['password'] ??= null;
+
+        if (!$superAdminData['password']) {
+            $superAdminData['password'] = app()->isProduction() || !config('app.seed-dummy-data', false)
+                ? str()->random(10) : 'power@123';
         }
 
         // Create or update super admin user
         $admin = User::updateOrCreate(
-            ['email' => 'admin@mail.com'],
+            ['email' => $superAdminData['email']],
             [
-                'name' => 'Admin User',
-                'email' => 'admin@mail.com',
-                'password' => Hash::make($defaultPassword),
+                'name' => $superAdminData['name'],
+                'email' => $superAdminData['email'],
+                'password' => Hash::make($superAdminData['password']),
                 'email_verified_at' => now(),
             ]
         );
@@ -41,7 +51,7 @@ class AdminUserSeeder extends Seeder
         }
 
         $this->command->info('Admin user created/updated successfully!');
-        $this->command->info('Email: admin@mail.com');
-        $this->command->info('Password: ' . $defaultPassword);
+        $this->command->info('Email: ' . $admin->email);
+        $this->command->info('Password: ' . $superAdminData['password']);
     }
 }
