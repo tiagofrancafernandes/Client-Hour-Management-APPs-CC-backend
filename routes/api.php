@@ -37,12 +37,26 @@ Route::prefix('debug')->group(function () {
 });
 
 Route::prefix('auth')->group(function () {
+    // Public routes (no authentication required)
+    Route::get('/resources', [AuthController::class, 'getAuthResources']);
     Route::post('/login', [AuthController::class, 'login']);
 
+    // Registration routes
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/register/verify', [AuthController::class, 'registerVerifyEmail']);
+    Route::post('/register/complete', [AuthController::class, 'registerComplete']);
+
+    // Password Recovery routes
+    Route::post('/password-recovery/request', [AuthController::class, 'requestPasswordRecovery']);
+    Route::post('/password-recovery/verify', [AuthController::class, 'verifyPasswordRecoveryToken']);
+    Route::post('/password-recovery/reset', [AuthController::class, 'resetPassword']);
+
+    // Authenticated routes
     Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me', [AuthController::class, 'me']);
         Route::get('/validate', [AuthController::class, 'validateToken']);
+        Route::post('/change-password', [AuthController::class, 'changePassword']);
     });
 });
 
