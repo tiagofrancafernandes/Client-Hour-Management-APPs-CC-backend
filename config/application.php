@@ -6,8 +6,8 @@ $disabledResources = (array) value(function () {
     $NOT_DISABLED = false;
 
     $hardDisabled = array_keys(array_filter([
-        'self_recovery_password' => $NOT_DISABLED,
-        'self_register' => $DISABLED,
+        // 'self_recovery_password' => $NOT_DISABLED,
+        // 'self_register' => $DISABLED,
     ]));
 
     $values = array_merge(array_values(
@@ -26,6 +26,8 @@ $availabledResources = (array) value(function () use ($disabledResources) {
         // 'abc' => $ENABLED,
         // 'def' => $DISABLED,
         // 'ghi' => $ENABLED,
+        'self_recovery_password' => $ENABLED,
+        'self_register' => $ENABLED,
     ]));
 
     $available = array_merge(array_values(
