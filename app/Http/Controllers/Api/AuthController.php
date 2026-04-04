@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ChangePasswordRequest;
+use App\Http\Requests\PasswordRecoveryRequestRequest;
 use App\Http\Requests\PasswordRecoveryResetRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Models\User;
@@ -244,28 +245,14 @@ class AuthController extends Controller
     /**
      * Request password recovery
      */
-    public function requestPasswordRecovery(Request $request): JsonResponse
+    public function requestPasswordRecovery(PasswordRecoveryRequestRequest $request): JsonResponse
     {
-        if (!config('application.resources.auth.self_recovery_password')) {
-            return response()->json([
-                'message' => 'Password recovery is disabled',
-            ], 403);
-        }
-
-        $request->validate([
-            'email' => ['required', 'email'],
-        ]);
-
-        $emailExists = User::where('email', $request->input('email'))->exists();
-
-        $token = $emailExists ? $this->authService->createEmailVerificationToken(
+        $token = $this->authService->createEmailVerificationToken(
             $request->input('email'),
             'password_reset'
-        ) : null;
+        );
 
-        if ($emailExists && $token) {
-            $this->authService->sendPasswordRecoveryEmail($token);
-        }
+        $this->authService->sendPasswordRecoveryEmail($token);
 
         return response()->json([
             'message' => 'If the email exists, a recovery link will be sent',

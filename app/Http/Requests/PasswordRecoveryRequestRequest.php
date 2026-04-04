@@ -11,6 +11,10 @@ class PasswordRecoveryRequestRequest extends FormRequest
      */
     public function authorize(): bool
     {
+        if (!config('application.resources.auth.self_recovery_password')) {
+            abort(403, 'Password recovery is disabled');
+        }
+
         return true;
     }
 
