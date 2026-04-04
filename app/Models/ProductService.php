@@ -26,6 +26,8 @@ class ProductService extends Model
 {
     use HasFactory;
 
+    protected $table = 'products_services';
+
     protected $fillable = [
         'name',
         'description',
