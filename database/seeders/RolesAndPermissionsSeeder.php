@@ -99,6 +99,23 @@ class RolesAndPermissionsSeeder extends Seeder
             'report.export',
             'report.export_any',
             'report.view_any',
+
+            // Invoices
+            'invoice.view',
+            'invoice.view_any',
+            'invoice.create',
+            'invoice.update',
+            'invoice.delete',
+            'invoice.update_any',
+            'invoice.hide',
+            'invoice.view_draft',
+
+            // Products and Services
+            'product_service.view',
+            'product_service.view_any',
+            'product_service.create',
+            'product_service.update',
+            'product_service.delete',
         ];
 
         foreach ($permissions as $permission) {
@@ -158,6 +175,19 @@ class RolesAndPermissionsSeeder extends Seeder
             'import.delete',
             'report.view',
             'report.view_any',
+            'invoice.view',
+            'invoice.view_any',
+            'invoice.create',
+            'invoice.update',
+            'invoice.delete',
+            'invoice.update_any',
+            'invoice.hide',
+            'invoice.view_draft',
+            'product_service.view',
+            'product_service.view_any',
+            'product_service.create',
+            'product_service.update',
+            'product_service.delete',
         ]);
 
         if (!$isProduction || $debugOn) {
@@ -201,6 +231,17 @@ class RolesAndPermissionsSeeder extends Seeder
             'import.cancel',
             'report.view',
             'report.view_any',
+            'invoice.view',
+            'invoice.view_any',
+            'invoice.create',
+            'invoice.update',
+            'invoice.delete',
+            'invoice.view_draft',
+            'product_service.view',
+            'product_service.view_any',
+            'product_service.create',
+            'product_service.update',
+            'product_service.delete',
         ]);
 
         if (!$isProduction || $debugOn) {
@@ -268,6 +309,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'report.export',
             'credit_purchase.create',
             'credit_purchase.view',
+            'invoice.view',
         ]);
 
         if (!$isProduction || $debugOn) {

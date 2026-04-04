@@ -7,10 +7,12 @@ use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\ClientUserController;
 use App\Http\Controllers\Api\CreditPurchaseController;
 use App\Http\Controllers\Api\ImportPlanController;
+use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\LedgerEntryController;
 use App\Http\Controllers\Api\PaymentApprovalController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\PaymentReceiptController;
+use App\Http\Controllers\Api\ProductServiceController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\Api\TimerController;
@@ -131,6 +133,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/by-client', [ReportController::class, 'byClient']);
         Route::get('/export', [ReportController::class, 'export']);
     });
+
+    // Invoice Routes
+    Route::apiResource('invoices', InvoiceController::class);
+    Route::get('/invoices/{invoice}/download-markdown', [InvoiceController::class, 'downloadMarkdown']);
+
+    // Products and Services Routes
+    Route::apiResource('products-services', ProductServiceController::class);
 
     // Credit Purchase Routes
     Route::prefix('credit-purchases')->group(function () {

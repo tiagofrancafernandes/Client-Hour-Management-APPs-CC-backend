@@ -10,6 +10,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * @property int $id
  * @property string $name
+ * @property string|null $business_name
+ * @property string|null $address_line1
+ * @property string|null $address_line2
+ * @property string|null $city
+ * @property string|null $state
+ * @property string|null $postal_code
+ * @property string|null $country
+ * @property string|null $phone
+ * @property string|null $email
+ * @property string|null $tax_id
+ * @property string|null $default_currency
  * @property string|null $notes
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
@@ -18,6 +29,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read int|null $users_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Wallet> $wallets
  * @property-read int|null $wallets_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Invoice> $invoices
+ * @property-read int|null $invoices_count
  * @method static Builder<static>|Client byCustomer(\App\Models\User $user)
  * @method static \Database\Factories\ClientFactory factory($count = null, $state = [])
  * @method static Builder<static>|Client newModelQuery()
@@ -37,6 +50,17 @@ class Client extends Model
 
     protected $fillable = [
         'name',
+        'business_name',
+        'address_line1',
+        'address_line2',
+        'city',
+        'state',
+        'postal_code',
+        'country',
+        'phone',
+        'email',
+        'tax_id',
+        'default_currency',
         'notes',
         'customer_since',
     ];
@@ -53,6 +77,11 @@ class Client extends Model
     public function users(): HasMany
     {
         return $this->hasMany(User::class, 'customer_id');
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
     }
 
     public function isUserCustomer(User $user): bool
