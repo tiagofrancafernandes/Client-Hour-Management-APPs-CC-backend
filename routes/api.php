@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\PaymentApprovalController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\PaymentReceiptController;
 use App\Http\Controllers\Api\ProductServiceController;
+use App\Http\Controllers\Api\PublicResourceController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\Api\TimerController;
@@ -36,6 +37,10 @@ Route::prefix('health-check')->group(function () {
 Route::prefix('debug')->group(function () {
     Route::get('/config', DebugConfigController::class);
     Route::post('/config', DebugConfigController::class);
+});
+
+Route::prefix('public')->name('api.public.')->group(function () {
+    Route::any('/timezones', [PublicResourceController::class, 'timezones'])->name('timezones');
 });
 
 Route::prefix('auth')->group(function () {

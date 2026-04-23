@@ -61,6 +61,10 @@ class LedgerEntryController extends Controller
 
         return response()->json([
             'entry' => $entry,
+            'request_data' => array_merge(
+                $data,
+                $request->all(),
+            ),
             'new_balance' => $this->ledgerService->getWalletBalance($wallet),
         ], 201);
     }

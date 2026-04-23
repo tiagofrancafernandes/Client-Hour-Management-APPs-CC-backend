@@ -37,13 +37,21 @@ class LedgerService
     private function createEntry(Wallet $wallet, float $hours, array $data): LedgerEntry
     {
         return DB::transaction(function () use ($wallet, $hours, $data) {
+            $refTz = getTimezoneFrom(
+                $data['reference_date_timezone'] ?? $data['reference_date'] ?? null,
+                onlyName: true
+            ) ?? 'UTC';
+
             $entry = LedgerEntry::create([
                 'wallet_id' => $wallet->id,
                 'hours' => $hours,
                 'title' => $data['title'] ?? null,
                 'description' => $data['description'] ?? null,
                 'reference_date' => $data['reference_date'] ?? null,
+                'reference_date_timezone' => $refTz,
             ]);
+
+            $entry = $entry->fresh();
 
             if (! empty($data['tags'])) {
                 $tagIds = is_array($data['tags']) ? $data['tags'] : [$data['tags']];

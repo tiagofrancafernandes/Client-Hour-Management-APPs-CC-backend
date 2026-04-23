@@ -6,6 +6,54 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreLedgerEntryRequest extends FormRequest
 {
+    /**
+     * Prepare the data for validation.
+     *
+     * @return void
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            //
+        ]);
+    }
+
+    /**
+     * Get data to be validated from the request.
+     *
+     * @return array
+     */
+    public function validationData()
+    {
+        $data = parent::validationData();
+        $referenceDate = $data['reference_date_timezone'] ?? null;
+        $tzFromReferenceDate = getTimezoneFrom($referenceDate, onlyName: true);
+        $data['changedOn'] ??= '';
+        $data['changedOn'] = ($data['changedOn'] ? $data['changedOn'] . ':' : '') . 'validationData';
+
+        $resolvedDate = value(function () use ($data) {
+            try {
+                return resolveReferenceDateAndTimezone(
+                    $data['reference_date'] ?? null,
+                    $data['reference_date_timezone'] ?? null,
+                );
+            } catch (\Throwable $th) {
+                return [
+                    'reference_date' => $data['reference_date'] ?? null,
+                    'reference_date_timezone' => $data['reference_date_timezone'] ?? null,
+                ];
+            }
+        });
+
+        $data['reference_date'] = $resolvedDate['reference_date'] ?? $data['reference_date'] ?? null;
+        $data['reference_date_timezone'] = getTimezoneFrom(
+            $resolvedDate['reference_date_timezone'] ?? $tzFromReferenceDate,
+            onlyName: true,
+        );
+
+        return $data;
+    }
+
     public function authorize(): bool
     {
         $type = $this->input('type', 'debit');
@@ -30,7 +78,13 @@ class StoreLedgerEntryRequest extends FormRequest
             'title' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'reference_date' => ['nullable', 'date'],
+            'reference_date_timezone' => [
+                'nullable',
+                'string',
+                'timezone',
+            ],
             'tags' => ['nullable', 'array'],
+            'changedOn' => ['nullable'],
             'tags.*' => ['integer', 'exists:tags,id'],
         ];
     }
