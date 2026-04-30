@@ -3,6 +3,7 @@
 namespace Tests\Feature\Api;
 
 use App\Models\Client;
+use App\Models\LedgerEntry;
 use App\Models\Tag;
 use App\Models\User;
 use App\Services\ReportExportService;
@@ -61,6 +62,8 @@ class PermissionTest extends TestCase
             'wallet.update',
             'wallet.update_rules',
             'wallet.delete',
+            'ledger.view',
+            'ledger.view_any',
             'tag.view',
             'tag.view_any',
             'tag.create',
@@ -94,6 +97,7 @@ class PermissionTest extends TestCase
         $customer = Role::firstOrCreate(['name' => 'customer']);
         $customer->syncPermissions([
             'client.view',
+            'ledger.view',
             'wallet.view',
             'tag.view',
             'report.view',
@@ -166,6 +170,32 @@ class PermissionTest extends TestCase
         $response->assertStatus(403);
     }
 
+    public function testCustomerCanOnlyListOwnClients(): void
+    {
+        $customerClient = Client::factory()->create();
+        $otherClient = Client::factory()->create();
+
+        $this->customer->forceFill([
+            'customer_id' => $customerClient->id,
+        ])->save();
+
+        $customerClient->wallets()->create([
+            'name' => 'Customer Wallet',
+        ]);
+
+        $otherClient->wallets()->create([
+            'name' => 'Other Wallet',
+        ]);
+
+        $response = $this->actingAs($this->customer)
+            ->getJson('/api/clients');
+
+        $response->assertOk();
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonPath('data.0.id', $customerClient->id);
+        $response->assertJsonMissingPath('data.1');
+    }
+
     // Wallet Permission Tests
 
     public function testAdminCanCreateWallet(): void
@@ -192,6 +222,99 @@ class PermissionTest extends TestCase
             ]);
 
         $response->assertStatus(403);
+    }
+
+    public function testAdminCanListAllWalletsAndFilterByClient(): void
+    {
+        $firstClient = Client::factory()->create();
+        $secondClient = Client::factory()->create();
+
+        $firstWallet = $firstClient->wallets()->create([
+            'name' => 'First Wallet',
+        ]);
+
+        $secondClient->wallets()->create([
+            'name' => 'Second Wallet',
+        ]);
+
+        $response = $this->actingAs($this->admin)
+            ->getJson('/api/wallets');
+
+        $response->assertOk();
+        $response->assertJsonCount(2, 'data');
+        $response->assertJsonFragment([
+            'id' => $firstWallet->id,
+        ]);
+
+        $filteredResponse = $this->actingAs($this->admin)
+            ->getJson('/api/wallets?client_id=' . $firstClient->id);
+
+        $filteredResponse->assertOk();
+        $filteredResponse->assertJsonCount(1, 'data');
+        $filteredResponse->assertJsonPath('data.0.id', $firstWallet->id);
+    }
+
+    public function testCustomerCanOnlyListOwnWallets(): void
+    {
+        $customerClient = Client::factory()->create();
+        $otherClient = Client::factory()->create();
+
+        $this->customer->forceFill([
+            'customer_id' => $customerClient->id,
+        ])->save();
+
+        $ownWallet = $customerClient->wallets()->create([
+            'name' => 'Customer Wallet',
+        ]);
+
+        $otherWallet = $otherClient->wallets()->create([
+            'name' => 'Other Wallet',
+        ]);
+
+        $response = $this->actingAs($this->customer)
+            ->getJson('/api/wallets');
+
+        $response->assertOk();
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonPath('data.0.id', $ownWallet->id);
+        $response->assertJsonPath('data.0.client_id', $customerClient->id);
+        $response->assertJsonMissingPath('data.1');
+        $response->assertJsonMissing(['id' => $otherWallet->id]);
+    }
+
+    public function testCustomerCanOnlyListOwnLedgerEntries(): void
+    {
+        $customerClient = Client::factory()->create();
+        $otherClient = Client::factory()->create();
+
+        $this->customer->forceFill([
+            'customer_id' => $customerClient->id,
+        ])->save();
+
+        $customerWallet = $customerClient->wallets()->create([
+            'name' => 'Customer Wallet',
+        ]);
+
+        $otherWallet = $otherClient->wallets()->create([
+            'name' => 'Other Wallet',
+        ]);
+
+        $customerEntry = LedgerEntry::factory()->create([
+            'wallet_id' => $customerWallet->id,
+        ]);
+
+        LedgerEntry::factory()->create([
+            'wallet_id' => $otherWallet->id,
+        ]);
+
+        $response = $this->actingAs($this->customer)
+            ->getJson('/api/ledger-entries');
+
+        $response->assertOk();
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonPath('data.0.id', $customerEntry->id);
+        $response->assertJsonPath('data.0.wallet_id', $customerWallet->id);
+        $response->assertJsonMissingPath('data.1');
     }
 
     // Tag Permission Tests
@@ -224,6 +347,29 @@ class PermissionTest extends TestCase
             ->deleteJson("/api/tags/{$tag->id}");
 
         $response->assertStatus(403);
+    }
+
+    public function testCustomerCanListTagsWithoutViewAnyPermission(): void
+    {
+        Tag::factory()->create([
+            'name' => 'Development',
+        ]);
+
+        Tag::factory()->create([
+            'name' => 'Bug Fix',
+        ]);
+
+        $response = $this->actingAs($this->customer)
+            ->getJson('/api/tags');
+
+        $response->assertOk();
+        $response->assertJsonCount(2);
+        $response->assertJsonFragment([
+            'name' => 'Development',
+        ]);
+        $response->assertJsonFragment([
+            'name' => 'Bug Fix',
+        ]);
     }
 
     // Report Permission Tests

@@ -21,11 +21,16 @@ class ClientController extends Controller
     {
         $this->authorize('viewAny', Client::class);
 
+        $user = $request->user();
+
+        if ($user === null) {
+            abort(401);
+        }
+
         $query = Client::query();
 
-        // Filter by customer if user has customer role
-        if (auth()->user()->hasRole('customer')) {
-            $query->byCustomer(auth()->user());
+        if (! $user->can('client.view_any')) {
+            $query->byCustomer($user);
         }
 
         $clients = $query

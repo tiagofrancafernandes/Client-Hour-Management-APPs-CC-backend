@@ -9,7 +9,11 @@ class WalletPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->can('wallet.view_any');
+        if ($user->can('wallet.view_any')) {
+            return true;
+        }
+
+        return $user->can('wallet.view');
     }
 
     public function view(User $user, Wallet $wallet): bool

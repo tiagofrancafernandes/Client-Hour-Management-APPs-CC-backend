@@ -24,7 +24,7 @@ class PaymentMethodRegistry
 
         $instance = new $class();
 
-        self::$methods[$instance->key()] = $class;
+        static::$methods[$instance->key()] = $class;
     }
 
     /**
@@ -36,7 +36,7 @@ class PaymentMethodRegistry
     {
         return array_map(
             static fn (string $class) => new $class(),
-            self::$methods
+            static::$methods
         );
     }
 
@@ -49,7 +49,7 @@ class PaymentMethodRegistry
     {
         return array_values(
             array_filter(
-                self::all(),
+                static::all(),
                 static fn (AbstractPaymentMethod $method) => $method->isActive()
             )
         );
@@ -60,11 +60,11 @@ class PaymentMethodRegistry
      */
     public static function find(string $key): ?AbstractPaymentMethod
     {
-        if (! isset(self::$methods[$key])) {
+        if (! isset(static::$methods[$key])) {
             return null;
         }
 
-        $class = self::$methods[$key];
+        $class = static::$methods[$key];
 
         return new $class();
     }
@@ -74,7 +74,7 @@ class PaymentMethodRegistry
      */
     public static function fromKey(string $key): AbstractPaymentMethod
     {
-        $method = self::find($key);
+        $method = static::find($key);
 
         if ($method === null) {
             throw new InvalidArgumentException("Payment method '{$key}' is not registered.");
@@ -90,7 +90,7 @@ class PaymentMethodRegistry
      */
     public static function keys(): array
     {
-        return array_keys(self::$methods);
+        return array_keys(static::$methods);
     }
 
     /**
@@ -98,7 +98,7 @@ class PaymentMethodRegistry
      */
     public static function has(string $key): bool
     {
-        return isset(self::$methods[$key]);
+        return isset(static::$methods[$key]);
     }
 
     /**
@@ -109,7 +109,7 @@ class PaymentMethodRegistry
         return array_values(
             array_map(
                 static fn (AbstractPaymentMethod $method) => $method->toArray(),
-                self::all()
+                static::all()
             )
         );
     }
@@ -119,6 +119,6 @@ class PaymentMethodRegistry
      */
     public static function flush(): void
     {
-        self::$methods = [];
+        static::$methods = [];
     }
 }

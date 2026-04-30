@@ -16,7 +16,7 @@ use Spatie\Permission\Models\Role;
  *   - ledger.credit     → add credit entries
  *
  * @author Tiago França
- * @copyright (c) 2025
+ * @copyright (c) 2026
  */
 class RolesAndPermissionsSeeder extends Seeder
 {

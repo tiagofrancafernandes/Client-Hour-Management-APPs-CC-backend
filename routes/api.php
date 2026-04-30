@@ -79,6 +79,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::put('/{user}', [UserController::class, 'update']);
         Route::put('/{user}/role', [UserController::class, 'updateRole']);
         Route::put('/{user}/permissions', [UserController::class, 'updatePermissions']);
+        Route::put('/{user}/password', [UserController::class, 'updatePassword']);
     });
 
     Route::apiResource('clients', ClientController::class);

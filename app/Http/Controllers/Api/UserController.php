@@ -156,6 +156,24 @@ class UserController extends Controller
         ]);
     }
 
+    public function updatePassword(Request $request, User $user): JsonResponse
+    {
+        $this->authorize('updatePassword', $user);
+
+        $validated = $request->validate([
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $user->update([
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        return response()->json([
+            'user' => $user->fresh(['roles', 'client']),
+            'message' => 'Password updated successfully',
+        ]);
+    }
+
     public function availableOptions(): JsonResponse
     {
         $this->authorize('viewAny', User::class);

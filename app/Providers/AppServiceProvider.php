@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\PaymentMethods\BankTransferPaymentMethod;
+use App\PaymentMethods\PixPaymentMethod;
 use App\PaymentMethods\PaymentMethodRegistry;
 use App\PaymentMethods\PixOfflinePaymentMethod;
 use Illuminate\Auth\Notifications\ResetPassword;
@@ -27,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Register payment methods
         PaymentMethodRegistry::register(PixOfflinePaymentMethod::class);
+        PaymentMethodRegistry::register(PixPaymentMethod::class);
         PaymentMethodRegistry::register(BankTransferPaymentMethod::class);
     }
 }

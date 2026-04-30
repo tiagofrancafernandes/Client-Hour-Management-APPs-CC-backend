@@ -9,7 +9,11 @@ class ClientPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->can('client.view_any');
+        if ($user->can('client.view_any')) {
+            return true;
+        }
+
+        return $user->can('client.view');
     }
 
     public function view(User $user, Client $client): bool

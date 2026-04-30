@@ -21,11 +21,16 @@ class LedgerEntryController extends Controller
     {
         $this->authorize('viewAny', LedgerEntry::class);
 
+        $user = $request->user();
+
+        if ($user === null) {
+            abort(401);
+        }
+
         $query = LedgerEntry::query();
 
-        // Filter by customer if user has customer role
-        if (auth()->user()->hasRole('customer')) {
-            $query->forCustomer(auth()->user());
+        if (! $user->can('ledger.view_any')) {
+            $query->forCustomer($user);
         }
 
         $entries = $query

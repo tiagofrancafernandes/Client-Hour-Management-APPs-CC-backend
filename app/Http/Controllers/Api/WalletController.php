@@ -23,17 +23,21 @@ class WalletController extends Controller
     {
         $this->authorize('viewAny', Wallet::class);
 
+        $user = $request->user();
+
+        if ($user === null) {
+            abort(401);
+        }
+
         $query = Wallet::query()
             ->with('client');
 
-        // Apply customer filtering if user is a customer
-        if (auth()->user()->hasRole('customer')) {
-            $query->forCustomer(auth()->user());
-        } else {
-            // Admin/operator can filter by client
-            $query->when($request->input('client_id'), function ($q, $clientId) {
-                $q->where('client_id', $clientId);
+        if ($user->can('wallet.view_any')) {
+            $query->when($request->input('client_id'), function ($query, $clientId) {
+                $query->where('client_id', $clientId);
             });
+        } else {
+            $query->forCustomer($user);
         }
 
         $wallets = $query
@@ -44,7 +48,7 @@ class WalletController extends Controller
             ->paginate($request->input('per_page', 15));
 
         // Hide internal_note for users without permission
-        $wallets->getCollection()->transform(fn ($w) => $w->hideInternalNoteIfNotPermitted(auth()->user()));
+        $wallets->getCollection()->transform(fn ($wallet) => $wallet->hideInternalNoteIfNotPermitted($user));
 
         return response()->json($wallets);
     }
