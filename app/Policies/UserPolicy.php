@@ -58,4 +58,19 @@ class UserPolicy
         // (Adicionar lógica específica se necessário)
         return false;
     }
+
+    public function updatePassword(User $authUser, User $user): bool
+    {
+        // User pode alterar sua própria senha
+        if ($authUser->id === $user->id) {
+            return true;
+        }
+
+        // Admin pode alterar senha de qualquer usuário
+        if ($authUser->can('user.manage_client_users')) {
+            return true;
+        }
+
+        return false;
+    }
 }
