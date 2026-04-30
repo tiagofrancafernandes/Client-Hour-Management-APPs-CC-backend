@@ -1,15 +1,14 @@
 # Universal Code Style Rules
+Version: 1.4
 
-Version: 1.0
-
-Audience: Humans & AI Code Assistants  
+Audience: Humans & AI Code Assistants
 Scope: Language-agnostic (C-like syntax used for examples)
 
 ---
 
 ## 1. Purpose
 
-This document defines **mandatory programming rules** that must be followed by humans and AI-generated code.
+This document defines mandatory programming rules that must be followed by humans and AI-generated code.
 
 Primary goals:
 
@@ -23,9 +22,48 @@ Automation must never sacrifice clarity.
 
 ---
 
-## 2. Core Principles
+## 2. Coding Standards
 
-### 2.1 Readability Over Cleverness
+Follow strictly:
+
+- For PHP, use PSR-12 rules
+- Follow all rules defined in this document
+
+Key requirements:
+
+- Early returns (guard clauses)
+- Avoid else whenever possible (else-less pattern)
+- Avoid nested if/else structures
+- Always use explicit braces
+- Never use one-line control statements
+- Separate logical blocks with blank lines
+- Code must be vertically readable
+- Fail fast validation
+- No implicit behavior
+
+---
+
+## 2.1 Key Rules (Non-Negotiable)
+
+These rules must ALWAYS be enforced:
+
+- Use early returns (guard clauses)
+- Avoid else whenever possible (else-less pattern)
+- Avoid nested if/else structures
+- Always use explicit braces
+- Never use one-line control statements
+- Separate logical blocks with blank lines
+- Code must be vertically readable
+- Fail fast on invalid input
+- No implicit behavior
+
+If any rule conflicts with brevity, readability wins.
+
+---
+
+## 3. Core Principles
+
+### 3.1 Readability Over Cleverness
 
 - Avoid one-liners
 - Avoid implicit behavior
@@ -35,7 +73,7 @@ Code must be easy to scan vertically.
 
 ---
 
-### 2.2 Explicit Over Implicit
+### 3.2 Explicit Over Implicit
 
 - All blocks must be explicit
 - All scopes must be visible
@@ -45,7 +83,7 @@ Hidden logic is forbidden.
 
 ---
 
-### 2.3 Fail Fast / Fail First
+### 3.3 Fail Fast / Fail First
 
 - Validate input immediately
 - Abort execution early
@@ -53,7 +91,7 @@ Hidden logic is forbidden.
 
 ---
 
-### 2.4 Early Return / Else-less Code
+### 3.4 Early Return / Else-less Code
 
 - Prefer guard clauses
 - Avoid else when possible
@@ -61,9 +99,58 @@ Hidden logic is forbidden.
 
 ---
 
-## 3. Control Flow Rules
+### 3.5 Control Flow Rules (CRITICAL)
 
-### 3.1 Mandatory Braces
+All code MUST follow this structure:
+
+1. Validate input
+2. Guard (early return)
+3. Prepare data
+4. Execute logic
+5. Return result
+
+---
+
+### Example
+
+❌ Wrong
+```js
+function process(data) {
+    if (data) {
+        const result = transform(data);
+
+        if (result) {
+            return result;
+        } else {
+            return null;
+        }
+    }
+}
+````
+
+✅ Correct
+
+```js
+function process(data) {
+    if (!data) {
+        return null;
+    }
+
+    const result = transform(data);
+
+    if (!result) {
+        return null;
+    }
+
+    return result;
+}
+```
+
+---
+
+## 4. Control Flow Rules
+
+### 4.1 Mandatory Braces
 
 All control structures must use braces.
 
@@ -83,13 +170,13 @@ if (true) {
 
 ---
 
-### 3.2 No One-Line Control Statements
+### 4.2 No One-Line Control Statements
 
 Applies to:
 
-- if / else
-- for / while / foreach
-- try / catch
+* if / else
+* for / while / foreach
+* try / catch
 
 ❌ Wrong
 
@@ -107,7 +194,7 @@ if (user) {
 
 ---
 
-### 3.3 Else-less Pattern
+### 4.3 Else-less Pattern
 
 ❌ Wrong
 
@@ -131,9 +218,41 @@ return user.name;
 
 ---
 
-## 4. Fail Fast & Guard Clauses
+### 4.4 No Nested If / Else Structures
 
-### 4.1 Validate Early
+* Nested ifs are forbidden
+* Nested if/else chains are forbidden
+* Flatten logic using guard clauses
+
+❌ Wrong
+
+```js
+if (a) {
+    if (b) {
+        run();
+    }
+}
+```
+
+✅ Correct
+
+```js
+if (!a) {
+    return;
+}
+
+if (!b) {
+    return;
+}
+
+run();
+```
+
+---
+
+## 5. Fail Fast & Guard Clauses
+
+### 5.1 Validate Early
 
 ❌ Wrong
 
@@ -163,45 +282,16 @@ function save(data) {
 
 ---
 
-### 4.2 Avoid Deep Nesting
+### 5.2 Avoid Deep Nesting
 
-❌ Wrong
-
-```js
-if (a) {
-    if (b) {
-        if (c) {
-            run();
-        }
-    }
-}
-```
-
-✅ Correct
-
-```js
-if (!a) {
-    return;
-}
-
-if (!b) {
-    return;
-}
-
-if (!c) {
-    return;
-}
-
-run();
-```
+* Maximum nesting depth should be minimal
+* Prefer linear flow
 
 ---
 
-## 5. Variable Declaration Rules
+## 6. Variable Declaration Rules
 
-### 5.1 Block Scope Only
-
-Avoid function-scoped or ambiguous variables.
+### 6.1 Block Scope Only
 
 ❌ Wrong
 
@@ -217,7 +307,7 @@ let foo = 'value';
 
 ---
 
-### 5.2 No Function-Scoped Variables
+### 6.2 No Function-Scoped Variables
 
 ❌ Wrong
 
@@ -237,244 +327,260 @@ function example() {
 
 ---
 
-## 6. Loop Rules
+### 6.3 Avoid Reassignment When Possible
 
-### 6.1 Loop Counters Must Be Block-Scoped
+Prefer immutability.
 
-❌ Wrong
+---
 
-```js
-for (var i = 0; i < 10; i++) {
-    log(i);
-}
-```
+## 7. Loop Rules
 
-✅ Correct
+### 7.1 Loop Counters Must Be Block-Scoped
 
-```js
-for (let i = 0; i < 10; i++) {
-    log(i);
-}
+### 7.2 Iteration Variables Must Be Block-Scoped
+
+---
+
+## 8. Vertical Formatting Rules
+
+### 8.1 Blank Line Between Logical Sections
+
+Always separate:
+
+* Validation
+* Declarations
+* Control flow
+* Execution
+* Return
+
+---
+
+### 8.2 One Concept per Block
+
+---
+
+### 8.3 Avoid Dense Code
+
+---
+
+### 8.4 Vertical Readability is Mandatory
+
+Code must be readable from top to bottom without mental jumps.
+
+* Each step must be visually separated
+* No compressed logic
+* No mixed responsibilities
+
+---
+
+## 9. Naming Rules
+
+### 9.1 Names Must Describe Intent
+
+### 9.2 Boolean Names Must Read as Questions
+
+### 9.3 Avoid Generic Names
+
+Forbidden:
+
+* data
+* value
+* result
+* temp
+
+---
+
+## 10. Functions
+
+### 10.1 Single Responsibility
+
+### 10.2 Prefer Small, Composable Functions
+
+### 10.3 Limit Function Size
+
+---
+
+## 11. Comments
+
+### 11.1 Code Explains How, Comments Explain Why
+
+### 11.2 Do Not Comment Obvious Code
+
+### 11.3 Remove Dead Code
+
+---
+
+## 12. Error Handling
+
+### 12.1 Never Ignore Errors
+
+### 12.2 Fail Loud, Not Silent
+
+---
+
+## 13. Constants & Magic Values
+
+### 13.1 No Magic Numbers
+
+---
+
+## 14. PHP-Specific Rules
+
+### 14.1 PSR Compliance
+
+* PSR-1 and PSR-12 are mandatory
+* 4 spaces indentation
+* UTF-8 without BOM
+
+---
+
+### 14.2 Naming
+
+* camelCase for variables/methods
+* PascalCase for classes
+
+---
+
+### 14.3 Strict Types
+
+```php
+declare(strict_types=1);
 ```
 
 ---
 
-### 6.2 Iteration Variables Must Be Block-Scoped
+### 14.4 Type Safety
 
-❌ Wrong
-
-```js
-for (var key in object) {
-    log(key);
-}
-```
-
-✅ Correct
-
-```js
-for (let key in object) {
-    log(key);
-}
-```
+* Always type inputs and outputs
+* Avoid mixed
 
 ---
 
-## 7. Vertical Formatting Rules
+### 14.5 Input Validation (CRITICAL)
 
-### 7.1 Blank Line Between Declarations and Control Flow
+Never trust external input.
 
-❌ Wrong
-
-```js
-let key = 'value';
-if (true) {
-    doSomething();
-}
-```
-
-✅ Correct
-
-```js
-let key = 'value';
-
-if (true) {
-    doSomething();
-}
-```
+* Always validate and sanitize
+* Use filter_var / filter_input
 
 ---
 
-### 7.2 One Concept per Block
+### 14.6 Error Handling
 
-- Declarations define state
-- Conditions control flow
-- Execution performs actions
-
-Separate concepts with blank lines.
+* Never use @
+* Use exceptions properly
+* Never swallow exceptions
 
 ---
 
-## 8. Naming Rules
+### 14.7 Database
 
-### 8.1 Names Must Describe Intent
-
-❌ Wrong
-
-```js
-const d = getData();
-```
-
-✅ Correct
-
-```js
-const userProfile = fetchUserProfile();
-```
+* Prefer ORM
+* Otherwise use PDO
+* Always use prepared statements
 
 ---
 
-### 8.2 Boolean Names Must Read as Questions
+### 14.8 Dependency Management
 
-❌ Wrong
-
-```js
-if (user.active) {
-}
-```
-
-✅ Correct
-
-```js
-if (user.isActive) {
-}
-```
+* Prefer DI
+* Avoid instantiating inside methods
 
 ---
 
-## 9. Functions
+### 14.9 Dependency Inversion
 
-### 9.1 Single Responsibility
-
-- One function, one reason to change
-- No god-functions
+* Use when it adds value
+* Avoid overengineering
 
 ---
 
-### 9.2 Prefer Small, Composable Functions
+### 14.10 Modern PHP
 
-❌ Wrong
+Use when it improves clarity:
 
-```js
-function handle(req) {
-    validate(req);
-    auth(req);
-    process(req);
-    respond(req);
-}
-```
-
-✅ Correct
-
-```js
-function handle(req) {
-    if (!isValid(req)) {
-        return error();
-    }
-
-    if (!isAuthorized(req)) {
-        return forbidden();
-    }
-
-    return process(req);
-}
-```
+* match
+* constructor promotion
+* nullsafe
+* readonly
 
 ---
 
-## 10. Comments
+### 14.11 Comments & Docs
 
-### 10.1 Code Explains How, Comments Explain Why
-
-❌ Wrong
-
-```js
-// increment counter
-i++;
-```
-
-✅ Correct
-
-```js
-// Early return avoids unnecessary database calls
-if (!user.isActive) {
-    return;
-}
-```
+* Avoid noise
+* Use PHPDoc when needed
 
 ---
 
-## 11. Error Handling
+### 14.12 Architecture
 
-### 11.1 Never Ignore Errors
-
-❌ Wrong
-
-```js
-try {
-    run();
-} catch (e) {}
-```
-
-✅ Correct
-
-```js
-try {
-    run();
-} catch (error) {
-    logError(error);
-    throw error;
-}
-```
+* Follow SOLID
+* Separate domain from infrastructure
 
 ---
 
-## 12. Forbidden Patterns
+### 14.13 Testing
 
-The following are forbidden even if supported by the language:
-
-- One-line control flow
-- Function-scoped variables where block scope exists
-- Missing blank lines between logical sections
-- Deep nesting instead of guard clauses
-- Dense vertical code
+* Prefer unit tests
+* Use mocks/stubs
 
 ---
 
-## 13. AI Enforcement Rules
+### 14.14 Property Visibility
 
-When generating code, the AI must:
+* Prefer `protected` over `private` for class properties.
+* Use `private` only when strictly necessary for encapsulation that must not be overridden.
 
-1. Follow all rules in this document
+---
+
+### 14.15 Static References
+
+* Always use `static::` instead of `self::` for internal static references.
+* Use `self::` only when the reference strictly REQUIRES the current class definition (preventing late static binding), which is rare.
+* This ensures better support for inheritance and late static binding.
+
+---
+
+### 14.16 Return Type Hints
+
+* When a method returns an instance of the class (or a child class), use `static` as the return type hint instead of `self`.
+* This applies to PHP 8.0+ environments.
+* Example: `public function getInstance(): static`
+
+---
+
+## 15. Forbidden Patterns
+
+* One-line control flow
+* Nested if/else
+* Silent errors
+* Magic numbers
+* Dead code
+
+---
+
+## 16. AI Enforcement Rules
+
+The AI must:
+
+1. Follow all rules
 2. Prefer clarity over brevity
-3. Always use explicit blocks
-4. Use early returns and guard clauses
-5. Apply block scope by default
-6. Insert blank lines between logical sections
-
-If there is doubt, choose the more explicit solution.
+3. Use guard clauses
+4. Avoid nesting
+5. Use explicit structure
 
 ---
 
-## 14. Guiding Mental Model
+## 17. Guiding Mental Model
 
-Code should read top-to-bottom as:
+Code must read:
 
 1. Validate
 2. Guard
 3. Prepare
 4. Execute
 5. Return
-
-Anything that breaks this flow must be rewritten.
 
 ---
 
