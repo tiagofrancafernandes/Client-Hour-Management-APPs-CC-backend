@@ -9,7 +9,11 @@ class TagPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->can('tag.view_any');
+        if ($user->can('tag.view_any')) {
+            return true;
+        }
+
+        return $user->can('tag.view');
     }
 
     public function view(User $user, Tag $tag): bool

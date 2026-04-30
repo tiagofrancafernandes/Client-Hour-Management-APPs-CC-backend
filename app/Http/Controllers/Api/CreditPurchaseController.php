@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Enums\CreditPurchaseStatus;
+use Illuminate\Contracts\Database\Eloquent\Builder;
+use App\Helpers\PaymentHelpers;
 use App\Http\Controllers\Controller;
 use App\Models\CreditPurchase;
 use App\Models\Wallet;
@@ -28,7 +30,7 @@ class CreditPurchaseController extends Controller
         $wallet = Wallet::findOrFail($request->input('wallet_id'));
 
         // Verificar se wallet tem credit_purchase_allowed habilitado
-        if (! $wallet->credit_purchase_allowed) {
+        if (!$wallet->credit_purchase_allowed) {
             return response()->json([
                 'message' => 'Credit purchases are not allowed for this wallet',
             ], 422);
@@ -91,6 +93,12 @@ class CreditPurchaseController extends Controller
     {
         $user = auth()->user();
         $query = CreditPurchase::query();
+        $pendingApprovals = $request->boolean('pending_approvals') || !$user->hasRole('customer');
+        $canPurchaseApprove = $user->hasAnyPermission(['credit_purchase.approve']);
+
+        if (!$canPurchaseApprove) {
+            $pendingApprovals = false;
+        }
 
         // Filtrar por wallet se fornecido
         if ($request->has('wallet_id')) {
@@ -111,8 +119,28 @@ class CreditPurchaseController extends Controller
             });
         }
 
+        $offlinePaymentMethods = PaymentHelpers::getActiveOfflinePaymentMethods()->keys()->toArray();
+
+        $query->when($pendingApprovals, function (Builder $q) use ($offlinePaymentMethods, $request) {
+            $q->whereHas('payments', function ($paymentQuery) use ($offlinePaymentMethods) {
+                $paymentQuery
+                    ->where('payment_status', 'pending')
+                    ->where(function ($conditionQuery) use ($offlinePaymentMethods) {
+                        $conditionQuery
+                            ->whereNotIn('payment_method', $offlinePaymentMethods)
+                            ->orWhere(function ($offlineQuery) use ($offlinePaymentMethods) {
+                                $offlineQuery
+                                    ->whereIn('payment_method', $offlinePaymentMethods)
+                                    ->whereNotNull('pix_receipt_path');
+                            })
+                            ;
+                    });
+            });
+        });
+        // ->orDoesntHave('payments');
+
         // Clientes veem apenas suas compras
-        if ($user->hasRole('customer')) {
+        if ($user->hasRole('customer') || !$canPurchaseApprove) {
             $query->where('customer_id', $user->id);
         }
 

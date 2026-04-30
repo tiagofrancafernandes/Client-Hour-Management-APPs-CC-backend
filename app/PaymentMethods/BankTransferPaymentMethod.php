@@ -14,6 +14,11 @@ class BankTransferPaymentMethod extends AbstractPaymentMethod
         return 'Bank Transfer';
     }
 
+    public function isOffline(): bool
+    {
+        return true;
+    }
+
     /**
      * Expires in 7 days after method is assigned.
      */
