@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use App\Models\Traits\HasTags;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -39,6 +40,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class LedgerEntry extends Model
 {
     use HasFactory;
+    use HasTags;
 
     protected $fillable = [
         'wallet_id',
