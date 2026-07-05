@@ -2,6 +2,7 @@
 
 namespace App\PaymentMethods;
 
+use App\Models\PaymentMethodConfig;
 use InvalidArgumentException;
 
 class PaymentMethodRegistry
@@ -47,21 +48,15 @@ class PaymentMethodRegistry
      */
     public static function active(): array
     {
-        $registeredMethods = array_values(
-            array_filter(
-                static::all(),
-                static fn (AbstractPaymentMethod $method) => $method->isActive()
-            )
-        );
-
-        $activeConfigs = \App\Models\PaymentMethodConfig::where('is_active', true)
+        $activeConfigs = PaymentMethodConfig::where('is_active', true)
             ->get()
             ->keyBy('payment_method_key');
 
         return array_values(
             array_filter(
-                $registeredMethods,
-                static fn (AbstractPaymentMethod $method) => $activeConfigs->has($method->key())
+                static::all(),
+                static fn (AbstractPaymentMethod $method) =>
+                    $method->isActive() && $activeConfigs->has($method->key())
             )
         );
     }
@@ -105,7 +100,7 @@ class PaymentMethodRegistry
             return null;
         }
 
-        $config = \App\Models\PaymentMethodConfig::where('payment_method_key', $key)->first();
+        $config = PaymentMethodConfig::where('payment_method_key', $key)->first();
 
         if ($config === null) {
             return null;
