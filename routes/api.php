@@ -168,6 +168,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/{creditPurchasePayment}/receipt-download', [PaymentReceiptController::class, 'download']);
     });
 
+    // Payment Methods Routes
+    Route::get('payment-methods', [PaymentController::class, 'getMethods']);
+
     // Payment Method Configuration (Admin)
     Route::prefix('admin')->group(function () {
         Route::get('payment-method-configs', [PaymentMethodConfigController::class, 'index']);

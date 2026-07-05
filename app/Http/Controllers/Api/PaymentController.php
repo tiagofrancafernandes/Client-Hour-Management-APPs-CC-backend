@@ -6,6 +6,7 @@ use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\CreditPurchase;
 use App\Models\CreditPurchasePayment;
+use App\Models\PaymentMethodConfig;
 use App\PaymentMethods\PaymentMethodRegistry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -98,6 +99,40 @@ class PaymentController extends Controller
         return response()->json([
             'data' => $creditPurchasePayment->fresh(),
             'message' => 'Payment method updated successfully',
+        ]);
+    }
+
+    /**
+     * Get all active payment methods with their configuration.
+     * GET /api/payment-methods
+     */
+    public function getMethods(): JsonResponse
+    {
+        $activeMethods = PaymentMethodRegistry::active();
+
+        $methodsWithConfig = array_map(
+            static function ($method) {
+                $config = PaymentMethodConfig::where('payment_method_key', $method->key())
+                    ->first();
+
+                $data = $method->toArray();
+
+                if ($config) {
+                    $data['is_active'] = $config->is_active;
+                    $data['instructions'] = $config->instructions;
+                    $data['display_order'] = $config->display_order;
+                }
+
+                return $data;
+            },
+            $activeMethods
+        );
+
+        // Ordenar por display_order
+        usort($methodsWithConfig, static fn ($a, $b) => $a['display_order'] <=> $b['display_order']);
+
+        return response()->json([
+            'methods' => array_values($methodsWithConfig),
         ]);
     }
 }
