@@ -62,6 +62,11 @@ class PaymentMethodConfigController extends Controller
     ): JsonResponse {
         $validated = $request->validated();
 
+        if ($request->has('instructions') && is_array($request->get('instructions'))) {
+            $instructions = $request->get('instructions');
+            $validated['instructions'] = !empty($instructions) ? json_encode($instructions) : null;
+        }
+
         $paymentMethodConfig->update($validated);
 
         return response()->json($paymentMethodConfig);

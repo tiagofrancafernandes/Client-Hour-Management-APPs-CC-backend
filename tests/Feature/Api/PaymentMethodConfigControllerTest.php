@@ -336,4 +336,114 @@ class PaymentMethodConfigControllerTest extends TestCase
             $this->assertFalse($item['is_active']);
         }
     }
+
+    public function test_save_structured_instructions_as_json(): void
+    {
+        $config = PaymentMethodConfig::factory()->create();
+
+        $instructions = [
+            ['key' => 'Chave PIX', 'value' => '123.456.789-10'],
+            ['key' => 'Agência', 'value' => '0001'],
+            ['key' => 'Conta', 'value' => '123456-7'],
+        ];
+
+        $response = $this->actingAs($this->admin)->putJson(
+            "/api/admin/payment-method-configs/{$config->id}",
+            ['instructions' => $instructions]
+        );
+
+        $response->assertStatus(200);
+        $this->assertIsString($response->json('instructions'));
+
+        $saved = PaymentMethodConfig::find($config->id);
+        $decoded = json_decode($saved->instructions, true);
+
+        $this->assertIsArray($decoded);
+        $this->assertCount(3, $decoded);
+        $this->assertEquals('Chave PIX', $decoded[0]['key']);
+        $this->assertEquals('123.456.789-10', $decoded[0]['value']);
+    }
+
+    public function test_retrieve_parsed_instructions(): void
+    {
+        $instructions = [
+            ['key' => 'Titular', 'value' => 'João Silva'],
+            ['key' => 'Banco', 'value' => 'Nubank'],
+        ];
+
+        $config = PaymentMethodConfig::factory()->create([
+            'instructions' => json_encode($instructions),
+        ]);
+
+        $response = $this->actingAs($this->admin)->getJson("/api/admin/payment-method-configs/{$config->id}");
+
+        $response->assertStatus(200);
+        $this->assertIsString($response->json('instructions'));
+
+        $decoded = json_decode($response->json('instructions'), true);
+        $this->assertIsArray($decoded);
+        $this->assertEquals('Titular', $decoded[0]['key']);
+    }
+
+    public function test_update_instructions_with_empty_pairs(): void
+    {
+        $config = PaymentMethodConfig::factory()->create([
+            'instructions' => json_encode([['key' => 'Old Key', 'value' => 'Old Value']]),
+        ]);
+
+        $response = $this->actingAs($this->admin)->putJson(
+            "/api/admin/payment-method-configs/{$config->id}",
+            ['instructions' => []]
+        );
+
+        $response->assertStatus(200);
+
+        $saved = PaymentMethodConfig::find($config->id);
+        $this->assertNull($saved->instructions);
+    }
+
+    public function test_instructions_with_special_characters(): void
+    {
+        $config = PaymentMethodConfig::factory()->create();
+
+        $instructions = [
+            ['key' => 'Chave PIX (CPF)', 'value' => '123.456.789-10 @ banco'],
+            ['key' => 'Descrição', 'value' => 'Dados para transferência (urgente)'],
+        ];
+
+        $response = $this->actingAs($this->admin)->putJson(
+            "/api/admin/payment-method-configs/{$config->id}",
+            ['instructions' => $instructions]
+        );
+
+        $response->assertStatus(200);
+
+        $saved = PaymentMethodConfig::find($config->id);
+        $decoded = json_decode($saved->instructions, true);
+
+        $this->assertStringContainsString('CPF', $decoded[0]['key']);
+        $this->assertStringContainsString('@', $decoded[0]['value']);
+        $this->assertStringContainsString('urgente', $decoded[1]['value']);
+    }
+
+    public function test_max_instructions_pairs(): void
+    {
+        $config = PaymentMethodConfig::factory()->create();
+
+        $instructions = array_map(function ($i) {
+            return ['key' => "Field {$i}", 'value' => "Value {$i}"];
+        }, range(1, 50));
+
+        $response = $this->actingAs($this->admin)->putJson(
+            "/api/admin/payment-method-configs/{$config->id}",
+            ['instructions' => $instructions]
+        );
+
+        $response->assertStatus(200);
+
+        $saved = PaymentMethodConfig::find($config->id);
+        $decoded = json_decode($saved->instructions, true);
+
+        $this->assertCount(50, $decoded);
+    }
 }
