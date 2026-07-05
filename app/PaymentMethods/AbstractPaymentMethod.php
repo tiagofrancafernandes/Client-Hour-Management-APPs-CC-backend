@@ -30,6 +30,11 @@ abstract class AbstractPaymentMethod implements PaymentMethodContract, Arrayable
         return false;
     }
 
+    public function instructions(): ?string
+    {
+        return null;
+    }
+
     public function currency(): ?string
     {
         return null;
@@ -110,6 +115,7 @@ abstract class AbstractPaymentMethod implements PaymentMethodContract, Arrayable
             'expires_time' => $this->expiresTime(),
             'accepts_discount' => $this->acceptsDiscount(),
             'allowed_users' => $this->allowedUsers(),
+            'instructions' => $this->instructions(),
         ];
     }
 

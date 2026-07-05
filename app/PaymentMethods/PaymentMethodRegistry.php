@@ -47,10 +47,21 @@ class PaymentMethodRegistry
      */
     public static function active(): array
     {
-        return array_values(
+        $registeredMethods = array_values(
             array_filter(
                 static::all(),
                 static fn (AbstractPaymentMethod $method) => $method->isActive()
+            )
+        );
+
+        $activeConfigs = \App\Models\PaymentMethodConfig::where('is_active', true)
+            ->get()
+            ->keyBy('payment_method_key');
+
+        return array_values(
+            array_filter(
+                $registeredMethods,
+                static fn (AbstractPaymentMethod $method) => $activeConfigs->has($method->key())
             )
         );
     }
@@ -81,6 +92,31 @@ class PaymentMethodRegistry
         }
 
         return $method;
+    }
+
+    /**
+     * Get payment method with its configuration.
+     */
+    public static function withConfig(string $key): ?array
+    {
+        $method = static::find($key);
+
+        if ($method === null) {
+            return null;
+        }
+
+        $config = \App\Models\PaymentMethodConfig::where('payment_method_key', $key)->first();
+
+        if ($config === null) {
+            return null;
+        }
+
+        $data = $method->toArray();
+        $data['is_active'] = $config->is_active;
+        $data['instructions'] = $config->instructions;
+        $data['display_order'] = $config->display_order;
+
+        return $data;
     }
 
     /**
