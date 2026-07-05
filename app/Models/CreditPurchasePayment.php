@@ -78,4 +78,23 @@ class CreditPurchasePayment extends Model
 
         return $this->expires_at->isPast();
     }
+
+    public function toArray(): array
+    {
+        $array = parent::toArray();
+
+        if ($this->payment_method && is_array($array['payment_method'])) {
+            $config = PaymentMethodConfig::where('payment_method_key', $this->payment_method->key())->first();
+
+            if ($config && $config->instructions) {
+                $instructions = is_string($config->instructions)
+                    ? json_decode($config->instructions, true)
+                    : $config->instructions;
+
+                $array['payment_method']['instructions'] = is_array($instructions) ? $instructions : [];
+            }
+        }
+
+        return $array;
+    }
 }
