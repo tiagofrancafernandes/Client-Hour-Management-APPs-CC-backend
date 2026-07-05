@@ -29,19 +29,4 @@ class PaymentMethodConfig extends Model
         'is_active' => 'boolean',
         'display_order' => 'integer',
     ];
-
-    public function isActive(): bool
-    {
-        return $this->is_active === true;
-    }
-
-    public function instructions(): ?string
-    {
-        return $this->instructions;
-    }
-
-    public function displayOrder(): int
-    {
-        return $this->display_order;
-    }
 }
