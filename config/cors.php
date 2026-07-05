@@ -21,7 +21,10 @@ return [
     'allowed_origins' => [
         ...array_unique(
             array_filter(
-                array_map(fn ($v) => trim("{$v}"), [
+                array_map(fn($v) => trim("{$v}"), [
+                    'https://api.hourledger.local.com',
+                    'https://hourledger.local.com',
+                    'https://local.com',
                     env('FRONTEND_URL', 'http://localhost:3000'),
                     ...explode(',', strval(env('CENTRAL_DOMAINS'))),
                     ...explode(',', strval(env('ALLOWED_ORIGINS'))),
