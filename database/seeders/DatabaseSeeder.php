@@ -17,6 +17,9 @@ class DatabaseSeeder extends Seeder
         // Seed roles and permissions first
         $this->call(RolesAndPermissionsSeeder::class);
 
+        // Seed payment method configurations
+        $this->call(PaymentMethodConfigSeeder::class);
+
         // Seed admin users
         $this->call(AdminUserSeeder::class);
 
