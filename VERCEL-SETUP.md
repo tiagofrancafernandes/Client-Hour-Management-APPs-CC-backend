@@ -63,7 +63,7 @@ Na dashboard Vercel, acesse **Settings > Environment Variables** e adicione:
 #### Variáveis Obrigatórias
 
 ```
-APP_NAME=Hours Ledger
+APP_NAME=Hour Ledger
 APP_ENV=production
 APP_KEY=base64:<sua-chave-gerada>
 APP_URL=https://<seu-dominio>.vercel.app
@@ -198,7 +198,7 @@ Após deploy:
 
 ```env
 # Application
-APP_NAME=Hours Ledger
+APP_NAME=Hour Ledger
 APP_ENV=production
 APP_DEBUG=false
 APP_KEY=base64:xxx...

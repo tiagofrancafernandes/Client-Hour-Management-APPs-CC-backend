@@ -7,7 +7,7 @@ use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 /**
- * Roles and Permissions Seeder for Hours Ledger System
+ * Roles and Permissions Seeder for Hour Ledger System
  *
  * Permission naming convention: namespace.action or namespace.action_modifier
  * Examples:

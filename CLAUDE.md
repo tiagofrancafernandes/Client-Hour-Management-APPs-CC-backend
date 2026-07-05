@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Hours Ledger System — Backend API**
+**Hour Ledger System — Backend API**
 
 Laravel 12 REST API implementing a ledger-based hour tracking system.
 

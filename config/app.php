@@ -1,10 +1,10 @@
 <?php
 
 $isOnLambda = str_starts_with(env('LAMBDA_TASK_ROOT', ''), '/var/task')
-        || env('AWS_LAMBDA_FUNCTION_VERSION')
-        || env('AWS_LAMBDA_EXEC_WRAPPER')
-        || env('AWS_LAMBDA_RUNTIME_API')
-        || env('AWS_LAMBDA_FUNCTION_NAME') || false;
+    || env('AWS_LAMBDA_FUNCTION_VERSION')
+    || env('AWS_LAMBDA_EXEC_WRAPPER')
+    || env('AWS_LAMBDA_RUNTIME_API')
+    || env('AWS_LAMBDA_FUNCTION_NAME') || false;
 
 return [
     'on_serverless' => (bool) env('ON_SERVERLESS', $isOnLambda),
@@ -20,7 +20,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Hours Ledger'),
+    'name' => env('APP_NAME', 'Hour Ledger'),
 
     /*
     |--------------------------------------------------------------------------

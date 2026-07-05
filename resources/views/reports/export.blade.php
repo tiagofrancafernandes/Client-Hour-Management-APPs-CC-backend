@@ -242,7 +242,7 @@
     </table>
 
     <div class="footer">
-        Hours Ledger System - Relatório gerado automaticamente
+        Hour Ledger System - Relatório gerado automaticamente
     </div>
 </body>
 </html>

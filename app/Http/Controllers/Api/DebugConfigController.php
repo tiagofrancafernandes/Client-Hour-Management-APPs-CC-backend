@@ -115,7 +115,7 @@ class DebugConfigController extends Controller
                 }
             }
 
-            if (! $isSensitive) {
+            if (!$isSensitive) {
                 $filtered[$key] = $value;
             } else {
                 $filtered[$key] = '***REDACTED***';
@@ -172,7 +172,7 @@ class DebugConfigController extends Controller
                 }
             }
 
-            if (! $isSensitive) {
+            if (!$isSensitive) {
                 $filtered[$key] = $value;
             } else {
                 $filtered[$key] = '***REDACTED***';
@@ -187,6 +187,7 @@ class DebugConfigController extends Controller
         $file = $file ?: __FILE__;
 
         return [
+            'app_name' => config('app.name', 'Hour Ledger'),
             'path' => $request->path(),
             'file' => $file ? str_replace(base_path() . '/', '', $file) : null,
             'fullUrl' => $request->fullUrl(),

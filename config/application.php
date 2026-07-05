@@ -60,7 +60,7 @@ return [
         ],
     ],
     'mail' => [
-        'footer_name' => env('MAIL_FOOTER_NAME', env('APP_NAME', 'Hours Ledger Team')),
+        'footer_name' => env('MAIL_FOOTER_NAME', env('APP_NAME', 'Hour Ledger Team')),
     ],
     'date' => [
         'timezones' => [

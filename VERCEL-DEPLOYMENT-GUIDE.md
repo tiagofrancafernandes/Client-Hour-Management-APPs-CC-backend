@@ -36,7 +36,7 @@ Antes de clicar em "Deploy", clique em **"Environment Variables"** e adicione:
 #### Obrigatórias:
 
 ```
-APP_NAME=Hours Ledger
+APP_NAME=Hour Ledger
 APP_ENV=production
 APP_DEBUG=false
 APP_KEY=base64:YOUR_KEY_HERE
@@ -138,7 +138,7 @@ Após deployment bem-sucedido:
 ## Variáveis de Produção - Exemplo Completo
 
 ```env
-APP_NAME=Hours Ledger
+APP_NAME=Hour Ledger
 APP_ENV=production
 APP_DEBUG=false
 APP_KEY=base64:abcdef1234567890...

@@ -1,5 +1,5 @@
 @component('mail::message')
-# Welcome to Hours Ledger!
+# Welcome to Hour Ledger!
 
 Hi {{ $name }},
 
