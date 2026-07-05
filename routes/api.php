@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\Api\TimerController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\WalletController;
+use App\Http\Controllers\Api\Admin\PaymentMethodConfigController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -165,5 +166,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/{creditPurchasePayment}/approve', [PaymentApprovalController::class, 'approve']);
         Route::post('/{creditPurchasePayment}/reject', [PaymentApprovalController::class, 'reject']);
         Route::get('/{creditPurchasePayment}/receipt-download', [PaymentReceiptController::class, 'download']);
+    });
+
+    // Payment Method Configuration (Admin)
+    Route::prefix('admin')->group(function () {
+        Route::get('payment-method-configs', [PaymentMethodConfigController::class, 'index']);
+        Route::get('payment-method-configs/{paymentMethodConfig}', [PaymentMethodConfigController::class, 'show']);
+        Route::put('payment-method-configs/{paymentMethodConfig}', [PaymentMethodConfigController::class, 'update']);
+        Route::post('payment-method-configs/{paymentMethodConfig}/toggle', [PaymentMethodConfigController::class, 'toggle']);
     });
 });
