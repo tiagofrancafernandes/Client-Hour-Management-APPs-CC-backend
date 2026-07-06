@@ -119,6 +119,16 @@ abstract class AbstractPaymentMethod implements PaymentMethodContract, Arrayable
         ];
     }
 
+    public function setupFieldRules(): array
+    {
+        return [];
+    }
+
+    public function setupFieldDefaultValues(): array
+    {
+        return [];
+    }
+
     public function toJson($options = 0): string
     {
         return json_encode($this->toArray(), JSON_THROW_ON_ERROR | $options);

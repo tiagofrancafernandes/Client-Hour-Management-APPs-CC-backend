@@ -31,4 +31,41 @@ class PixOfflinePaymentMethod extends AbstractPaymentMethod
     {
         return '+48 hours';
     }
+
+    public function setupFieldRules(): array
+    {
+        return [
+            [
+                'label' => 'PIX key',
+                'name' => 'pix_key',
+                'required' => true,
+                'type' => 'string',
+                'min' => 4,
+                'max' => 25,
+            ],
+            [
+                'label' => 'Receiver name',
+                'name' => 'receiver_name',
+                'required' => true,
+                'type' => 'string',
+                'min' => 4,
+                'max' => 25,
+            ],
+            [
+                'label' => 'Receiver city',
+                'name' => 'receiver_city_name',
+                'required' => true,
+                'type' => 'string',
+                'min' => 4,
+                'max' => 15,
+            ],
+        ];
+    }
+
+    public function setupFieldDefaultValues(): array
+    {
+        return [
+            'receiver_city_name' => 'São Paulo',
+        ];
+    }
 }
