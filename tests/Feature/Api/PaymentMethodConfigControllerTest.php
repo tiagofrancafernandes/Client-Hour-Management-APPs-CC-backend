@@ -446,4 +446,115 @@ class PaymentMethodConfigControllerTest extends TestCase
 
         $this->assertCount(50, $decoded);
     }
+
+    /**
+     * Test complete setup flow for payment method configuration
+     */
+    public function test_complete_setup_flow(): void
+    {
+        $config = PaymentMethodConfig::factory()->create([
+            'payment_method_key' => 'pix_offline',
+            'is_active' => true,
+            'setup_fields' => null,
+        ]);
+
+        // Verificar que método está incompleto
+        $response = $this->actingAs($this->admin)->getJson(
+            "/api/admin/payment-method-configs/{$config->id}"
+        );
+
+        $response->assertStatus(200);
+        $this->assertFalse($response->json('is_setup_complete'));
+
+        // Preencher campos de setup
+        $setupData = [
+            'pix_key' => '123.456.789-10',
+            'receiver_name' => 'João Silva',
+            'receiver_city_name' => 'São Paulo',
+        ];
+
+        $updateResponse = $this->actingAs($this->admin)->putJson(
+            "/api/admin/payment-method-configs/{$config->id}",
+            ['setup_fields' => $setupData]
+        );
+
+        $updateResponse->assertStatus(200);
+        $this->assertTrue($updateResponse->json('is_setup_complete'));
+
+        // Verificar que dados persistiram
+        $config->refresh();
+        $this->assertEquals('123.456.789-10', $config->setup_fields['pix_key']);
+        $this->assertTrue($config->isSetupComplete());
+    }
+
+    /**
+     * Test setup fields validation on update
+     */
+    public function test_setup_fields_validation_on_update(): void
+    {
+        $config = PaymentMethodConfig::factory()->create([
+            'payment_method_key' => 'pix_offline',
+        ]);
+
+        // Tentar salvar com campo obrigatório vazio
+        $response = $this->actingAs($this->admin)->putJson(
+            "/api/admin/payment-method-configs/{$config->id}",
+            [
+                'setup_fields' => [
+                    'pix_key' => '123',
+                    'receiver_name' => '',
+                    'receiver_city_name' => 'São Paulo',
+                ],
+            ]
+        );
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['setup_fields.receiver_name']);
+    }
+
+    /**
+     * Test setup fields with default values
+     */
+    public function test_setup_fields_with_default_values(): void
+    {
+        $config = PaymentMethodConfig::factory()->create([
+            'payment_method_key' => 'pix_offline',
+        ]);
+
+        // Obter configuração com defaults
+        $response = $this->actingAs($this->admin)->getJson(
+            "/api/admin/payment-method-configs/{$config->id}"
+        );
+
+        $response->assertStatus(200);
+        $defaults = $response->json('setup_field_defaults');
+
+        $this->assertIsArray($defaults);
+        $this->assertArrayHasKey('receiver_city_name', $defaults);
+        $this->assertEquals('São Paulo', $defaults['receiver_city_name']);
+    }
+
+    /**
+     * Test inactive method when setup is incomplete
+     */
+    public function test_inactive_method_when_setup_incomplete(): void
+    {
+        $config = PaymentMethodConfig::factory()->create([
+            'payment_method_key' => 'pix_offline',
+            'is_active' => true,
+            'setup_fields' => null,
+        ]);
+
+        // Método está ativo mas setup incompleto
+        $this->assertTrue($config->is_active);
+        $this->assertFalse($config->isSetupComplete());
+
+        // Frontend pode usar is_setup_complete para desabilitar uso
+        $response = $this->actingAs($this->admin)->getJson(
+            "/api/admin/payment-method-configs/{$config->id}"
+        );
+
+        $response->assertStatus(200);
+        $this->assertFalse($response->json('is_setup_complete'));
+    }
 }
