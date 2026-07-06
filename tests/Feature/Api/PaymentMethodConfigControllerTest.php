@@ -54,7 +54,7 @@ class PaymentMethodConfigControllerTest extends TestCase
     /**
      * Test admin can list payment methods with pagination
      */
-    public function test_admin_can_list_payment_methods(): void
+    public function testAdminCanListPaymentMethods(): void
     {
         PaymentMethodConfig::factory()->create(['payment_method_key' => 'pix_method_1']);
         PaymentMethodConfig::factory()->create(['payment_method_key' => 'bank_method_1']);
@@ -77,7 +77,7 @@ class PaymentMethodConfigControllerTest extends TestCase
     /**
      * Test search filters methods by label and payment_method_key
      */
-    public function test_search_filters_methods(): void
+    public function testSearchFiltersMethods(): void
     {
         PaymentMethodConfig::factory()->create([
             'payment_method_key' => 'pix_offline',
@@ -105,7 +105,7 @@ class PaymentMethodConfigControllerTest extends TestCase
     /**
      * Test filter by active status
      */
-    public function test_filter_by_active_status(): void
+    public function testFilterByActiveStatus(): void
     {
         PaymentMethodConfig::factory()->active()->create(['payment_method_key' => 'active_method_1']);
         PaymentMethodConfig::factory()->active()->create(['payment_method_key' => 'active_method_2']);
@@ -126,7 +126,7 @@ class PaymentMethodConfigControllerTest extends TestCase
     /**
      * Test admin can update payment method label and display_order
      */
-    public function test_admin_can_update_method(): void
+    public function testAdminCanUpdateMethod(): void
     {
         $paymentMethod = PaymentMethodConfig::factory()->create([
             'label' => 'Original Label',
@@ -151,7 +151,7 @@ class PaymentMethodConfigControllerTest extends TestCase
     /**
      * Test toggle activation status
      */
-    public function test_toggle_activation_status(): void
+    public function testToggleActivationStatus(): void
     {
         $paymentMethod = PaymentMethodConfig::factory()->active()->create([
             'is_active' => true,
@@ -184,7 +184,7 @@ class PaymentMethodConfigControllerTest extends TestCase
     /**
      * Test non-admin cannot access payment method endpoints
      */
-    public function test_non_admin_cannot_access(): void
+    public function testNonAdminCannotAccess(): void
     {
         $response = $this->actingAs($this->viewer)
             ->getJson('/api/admin/payment-method-configs');
@@ -195,7 +195,7 @@ class PaymentMethodConfigControllerTest extends TestCase
     /**
      * Test unauthenticated user cannot access payment method endpoints
      */
-    public function test_unauthenticated_cannot_access(): void
+    public function testUnauthenticatedCannotAccess(): void
     {
         $response = $this->getJson('/api/admin/payment-method-configs');
 
@@ -205,10 +205,10 @@ class PaymentMethodConfigControllerTest extends TestCase
     /**
      * Test pagination works correctly
      */
-    public function test_pagination_works_correctly(): void
+    public function testPaginationWorksCorrectly(): void
     {
         for ($i = 1; $i <= 20; $i++) {
-            PaymentMethodConfig::factory()->create(['payment_method_key' => "method_$i"]);
+            PaymentMethodConfig::factory()->create(['payment_method_key' => "method_{$i}"]);
         }
 
         $response = $this->actingAs($this->admin)
@@ -224,7 +224,7 @@ class PaymentMethodConfigControllerTest extends TestCase
     /**
      * Test sorting by display_order and label
      */
-    public function test_sorting_by_display_order_and_label(): void
+    public function testSortingByDisplayOrderAndLabel(): void
     {
         PaymentMethodConfig::factory()->create([
             'label' => 'Zebra Method',
@@ -259,7 +259,7 @@ class PaymentMethodConfigControllerTest extends TestCase
     /**
      * Test admin cannot update without required fields
      */
-    public function test_admin_cannot_update_without_validation(): void
+    public function testAdminCannotUpdateWithoutValidation(): void
     {
         $paymentMethod = PaymentMethodConfig::factory()->create();
 
@@ -276,7 +276,7 @@ class PaymentMethodConfigControllerTest extends TestCase
     /**
      * Test toggle requires proper permission
      */
-    public function test_toggle_requires_permission(): void
+    public function testToggleRequiresPermission(): void
     {
         $paymentMethod = PaymentMethodConfig::factory()->create();
 
@@ -295,7 +295,7 @@ class PaymentMethodConfigControllerTest extends TestCase
     /**
      * Test search is case insensitive
      */
-    public function test_search_is_case_insensitive(): void
+    public function testSearchIsCaseInsensitive(): void
     {
         PaymentMethodConfig::factory()->create([
             'payment_method_key' => 'pix_offline',
@@ -318,7 +318,7 @@ class PaymentMethodConfigControllerTest extends TestCase
     /**
      * Test inactive status filtering
      */
-    public function test_filter_by_inactive_status(): void
+    public function testFilterByInactiveStatus(): void
     {
         PaymentMethodConfig::factory()->active()->create(['payment_method_key' => 'active_test_1']);
         PaymentMethodConfig::factory()->active()->create(['payment_method_key' => 'active_test_2']);
@@ -337,7 +337,7 @@ class PaymentMethodConfigControllerTest extends TestCase
         }
     }
 
-    public function test_save_structured_instructions_as_json(): void
+    public function testSaveStructuredInstructionsAsJson(): void
     {
         $config = PaymentMethodConfig::factory()->create();
 
@@ -364,7 +364,7 @@ class PaymentMethodConfigControllerTest extends TestCase
         $this->assertEquals('123.456.789-10', $decoded[0]['value']);
     }
 
-    public function test_retrieve_parsed_instructions(): void
+    public function testRetrieveParsedInstructions(): void
     {
         $instructions = [
             ['key' => 'Titular', 'value' => 'João Silva'],
@@ -385,7 +385,7 @@ class PaymentMethodConfigControllerTest extends TestCase
         $this->assertEquals('Titular', $decoded[0]['key']);
     }
 
-    public function test_update_instructions_with_empty_pairs(): void
+    public function testUpdateInstructionsWithEmptyPairs(): void
     {
         $config = PaymentMethodConfig::factory()->create([
             'instructions' => json_encode([['key' => 'Old Key', 'value' => 'Old Value']]),
@@ -402,7 +402,7 @@ class PaymentMethodConfigControllerTest extends TestCase
         $this->assertNull($saved->instructions);
     }
 
-    public function test_instructions_with_special_characters(): void
+    public function testInstructionsWithSpecialCharacters(): void
     {
         $config = PaymentMethodConfig::factory()->create();
 
@@ -426,13 +426,11 @@ class PaymentMethodConfigControllerTest extends TestCase
         $this->assertStringContainsString('urgente', $decoded[1]['value']);
     }
 
-    public function test_max_instructions_pairs(): void
+    public function testMaxInstructionsPairs(): void
     {
         $config = PaymentMethodConfig::factory()->create();
 
-        $instructions = array_map(function ($i) {
-            return ['key' => "Field {$i}", 'value' => "Value {$i}"];
-        }, range(1, 50));
+        $instructions = array_map(fn ($i) => ['key' => "Field {$i}", 'value' => "Value {$i}"], range(1, 50));
 
         $response = $this->actingAs($this->admin)->putJson(
             "/api/admin/payment-method-configs/{$config->id}",
@@ -450,7 +448,7 @@ class PaymentMethodConfigControllerTest extends TestCase
     /**
      * Test complete setup flow for payment method configuration
      */
-    public function test_complete_setup_flow(): void
+    public function testCompleteSetupFlow(): void
     {
         $config = PaymentMethodConfig::factory()->create([
             'payment_method_key' => 'pix_offline',
@@ -490,7 +488,7 @@ class PaymentMethodConfigControllerTest extends TestCase
     /**
      * Test setup fields validation on update
      */
-    public function test_setup_fields_validation_on_update(): void
+    public function testSetupFieldsValidationOnUpdate(): void
     {
         $config = PaymentMethodConfig::factory()->create([
             'payment_method_key' => 'pix_offline',
@@ -515,7 +513,7 @@ class PaymentMethodConfigControllerTest extends TestCase
     /**
      * Test setup fields with default values
      */
-    public function test_setup_fields_with_default_values(): void
+    public function testSetupFieldsWithDefaultValues(): void
     {
         $config = PaymentMethodConfig::factory()->create([
             'payment_method_key' => 'pix_offline',
@@ -537,7 +535,7 @@ class PaymentMethodConfigControllerTest extends TestCase
     /**
      * Test inactive method when setup is incomplete
      */
-    public function test_inactive_method_when_setup_incomplete(): void
+    public function testInactiveMethodWhenSetupIncomplete(): void
     {
         $config = PaymentMethodConfig::factory()->create([
             'payment_method_key' => 'pix_offline',

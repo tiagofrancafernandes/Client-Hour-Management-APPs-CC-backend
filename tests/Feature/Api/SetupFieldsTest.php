@@ -4,7 +4,6 @@ namespace Tests\Feature\Api;
 
 use App\Models\PaymentMethodConfig;
 use App\Models\User;
-use App\PaymentMethods\PaymentMethodRegistry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -55,7 +54,7 @@ class SetupFieldsTest extends TestCase
     /**
      * Test setup_fields are persisted as JSON
      */
-    public function test_setup_fields_are_persisted_as_json(): void
+    public function testSetupFieldsArePersistedAsJson(): void
     {
         $config = PaymentMethodConfig::factory()->create();
 
@@ -83,7 +82,7 @@ class SetupFieldsTest extends TestCase
     /**
      * Test setup_fields returned in show response
      */
-    public function test_setup_fields_returned_in_show_response(): void
+    public function testSetupFieldsReturnedInShowResponse(): void
     {
         $setupFieldsData = [
             'pix_key' => 'key-pix-456',
@@ -109,7 +108,7 @@ class SetupFieldsTest extends TestCase
     /**
      * Test empty setup_fields array becomes null
      */
-    public function test_empty_setup_fields_are_null(): void
+    public function testEmptySetupFieldsAreNull(): void
     {
         $config = PaymentMethodConfig::factory()->create([
             'setup_fields' => [
@@ -132,7 +131,7 @@ class SetupFieldsTest extends TestCase
     /**
      * Test setup_fields persists special characters
      */
-    public function test_setup_fields_persists_special_characters(): void
+    public function testSetupFieldsPersistsSpecialCharacters(): void
     {
         $config = PaymentMethodConfig::factory()->create();
 
@@ -160,7 +159,7 @@ class SetupFieldsTest extends TestCase
     /**
      * Test getSetupFieldRules returns payment method rules
      */
-    public function test_get_setup_field_rules_returns_payment_method_rules(): void
+    public function testGetSetupFieldRulesReturnsPaymentMethodRules(): void
     {
         $config = PaymentMethodConfig::factory()->create([
             'payment_method_key' => 'pix_offline',
@@ -184,7 +183,7 @@ class SetupFieldsTest extends TestCase
     /**
      * Test getSetupFieldDefaults returns payment method defaults
      */
-    public function test_get_setup_field_defaults_returns_payment_method_defaults(): void
+    public function testGetSetupFieldDefaultsReturnsPaymentMethodDefaults(): void
     {
         $config = PaymentMethodConfig::factory()->create([
             'payment_method_key' => 'pix_offline',
@@ -200,7 +199,7 @@ class SetupFieldsTest extends TestCase
     /**
      * Test isSetupComplete returns false when required fields are missing
      */
-    public function test_is_setup_complete_returns_false_when_required_fields_missing(): void
+    public function testIsSetupCompleteReturnsFalseWhenRequiredFieldsMissing(): void
     {
         $config = PaymentMethodConfig::factory()->create([
             'payment_method_key' => 'pix_offline',
@@ -216,7 +215,7 @@ class SetupFieldsTest extends TestCase
     /**
      * Test isSetupComplete returns true when all required fields are filled
      */
-    public function test_is_setup_complete_returns_true_when_all_required_fields_filled(): void
+    public function testIsSetupCompleteReturnsTrueWhenAllRequiredFieldsFilled(): void
     {
         $config = PaymentMethodConfig::factory()->create([
             'payment_method_key' => 'pix_offline',
@@ -233,7 +232,7 @@ class SetupFieldsTest extends TestCase
     /**
      * Test isSetupComplete returns true when no required fields exist
      */
-    public function test_is_setup_complete_returns_true_when_no_required_fields(): void
+    public function testIsSetupCompleteReturnsTrueWhenNoRequiredFields(): void
     {
         $config = PaymentMethodConfig::factory()->create();
 
@@ -244,7 +243,7 @@ class SetupFieldsTest extends TestCase
     /**
      * Test list endpoint includes setup completeness info
      */
-    public function test_list_includes_setup_completeness_info(): void
+    public function testListIncludesSetupCompletenessInfo(): void
     {
         // Create one with complete setup
         PaymentMethodConfig::factory()->create([
@@ -282,7 +281,7 @@ class SetupFieldsTest extends TestCase
     /**
      * Test non-admin cannot access setup fields endpoints
      */
-    public function test_non_admin_cannot_access(): void
+    public function testNonAdminCannotAccess(): void
     {
         $config = PaymentMethodConfig::factory()->create();
 
@@ -297,7 +296,7 @@ class SetupFieldsTest extends TestCase
     /**
      * Test unauthenticated user cannot access setup fields endpoints
      */
-    public function test_unauthenticated_cannot_access(): void
+    public function testUnauthenticatedCannotAccess(): void
     {
         $config = PaymentMethodConfig::factory()->create();
 
@@ -311,7 +310,7 @@ class SetupFieldsTest extends TestCase
     /**
      * Test setup_fields with numeric and boolean values
      */
-    public function test_setup_fields_with_numeric_and_boolean_values(): void
+    public function testSetupFieldsWithNumericAndBooleanValues(): void
     {
         $config = PaymentMethodConfig::factory()->create();
 
@@ -339,7 +338,7 @@ class SetupFieldsTest extends TestCase
     /**
      * Test setup_fields can be updated multiple times
      */
-    public function test_setup_fields_can_be_updated_multiple_times(): void
+    public function testSetupFieldsCanBeUpdatedMultipleTimes(): void
     {
         $config = PaymentMethodConfig::factory()->create();
 
@@ -382,11 +381,12 @@ class SetupFieldsTest extends TestCase
     /**
      * Test large setup_fields JSON is properly stored
      */
-    public function test_large_setup_fields_json_is_properly_stored(): void
+    public function testLargeSetupFieldsJsonIsProperlyStored(): void
     {
         $config = PaymentMethodConfig::factory()->create();
 
         $setupFields = [];
+
         for ($i = 1; $i <= 100; $i++) {
             $setupFields["field_{$i}"] = "Value for field {$i}";
         }

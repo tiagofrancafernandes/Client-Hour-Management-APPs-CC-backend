@@ -17,8 +17,10 @@ class PaymentMethodSetupValidator
 
             // Validate required fields
             $isRequired = $rule['required'] ?? false;
+
             if ($isRequired && empty($value)) {
                 $errors[$fieldName][] = "Campo obrigatório";
+
                 continue;
             }
 
@@ -30,8 +32,10 @@ class PaymentMethodSetupValidator
             // Validate type
             $type = $rule['type'] ?? 'string';
             $isValidType = $this->validateType($value, $type);
+
             if (!$isValidType) {
                 $errors[$fieldName][] = "Tipo inválido, esperado: {$type}";
+
                 continue;
             }
 
@@ -39,6 +43,7 @@ class PaymentMethodSetupValidator
             if (isset($rule['min'])) {
                 $minLength = $rule['min'];
                 $valueLength = strlen((string) $value);
+
                 if ($valueLength < $minLength) {
                     $errors[$fieldName][] = "Mínimo de {$minLength} caracteres";
                 }
@@ -48,6 +53,7 @@ class PaymentMethodSetupValidator
             if (isset($rule['max'])) {
                 $maxLength = $rule['max'];
                 $valueLength = strlen((string) $value);
+
                 if ($valueLength > $maxLength) {
                     $errors[$fieldName][] = "Máximo de {$maxLength} caracteres";
                 }
@@ -57,6 +63,7 @@ class PaymentMethodSetupValidator
             if ($type === 'select' && isset($rule['options'])) {
                 $validOptions = array_column($rule['options'], 'value');
                 $isValidOption = in_array($value, $validOptions, true);
+
                 if (!$isValidOption) {
                     $errors[$fieldName][] = "Opção inválida";
                 }

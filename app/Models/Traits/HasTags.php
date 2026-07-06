@@ -295,8 +295,8 @@ trait HasTags
         return collect(
             static::normalizeTags($tags)
         )->map(
-                fn(string $tag): Tag => static::findOrCreate($tag)
-            );
+            fn (string $tag): Tag => static::findOrCreate($tag)
+        );
     }
 
     /**
@@ -320,7 +320,7 @@ trait HasTags
             array_unique(
                 array_filter(
                     array_map(
-                        static fn(mixed $tag): string => trim((string) $tag),
+                        static fn (mixed $tag): string => trim((string) $tag),
                         is_string($tags)
                         ? explode(',', $tags)
                         : $tags

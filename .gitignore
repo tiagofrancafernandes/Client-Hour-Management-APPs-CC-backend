@@ -55,5 +55,6 @@ _ide_helper*
 !UNIVERSAL-CODE-STYLE-RULES.md
 !README*.md
 !resources/views/vendor/mail/markdown/*.md
+!docs/*.md
 .vercel
 .env*.local

@@ -132,8 +132,7 @@ class CreditPurchaseController extends Controller
                                 $offlineQuery
                                     ->whereIn('payment_method', $offlinePaymentMethods)
                                     ->whereNotNull('pix_receipt_path');
-                            })
-                            ;
+                            });
                     });
             });
         });

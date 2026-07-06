@@ -47,6 +47,7 @@ class PaymentMethodConfigController extends Controller
         $data['data'] = array_map(function ($item) {
             $config = PaymentMethodConfig::find($item['id']);
             $item['is_setup_complete'] = $config->isSetupComplete();
+
             return $item;
         }, $data['data']);
 
