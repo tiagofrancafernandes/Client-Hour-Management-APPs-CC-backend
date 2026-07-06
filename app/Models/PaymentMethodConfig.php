@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\PaymentMethods\AbstractPaymentMethod;
+use App\PaymentMethods\PaymentMethodRegistry;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -36,4 +38,54 @@ class PaymentMethodConfig extends Model
         'instructions' => 'json',
         'setup_fields' => 'json',
     ];
+
+    public function getPaymentMethodInstance(): ?AbstractPaymentMethod
+    {
+        return PaymentMethodRegistry::find($this->payment_method_key);
+    }
+
+    public function getSetupFieldRules(): array
+    {
+        $instance = $this->getPaymentMethodInstance();
+
+        if ($instance === null) {
+            return [];
+        }
+
+        return $instance->setupFieldRules();
+    }
+
+    public function getSetupFieldDefaults(): array
+    {
+        $instance = $this->getPaymentMethodInstance();
+
+        if ($instance === null) {
+            return [];
+        }
+
+        return $instance->setupFieldDefaultValues();
+    }
+
+    public function isSetupComplete(): bool
+    {
+        $rules = $this->getSetupFieldRules();
+
+        if (empty($rules)) {
+            return true;
+        }
+
+        $setupData = $this->setup_fields ?? [];
+
+        foreach ($rules as $rule) {
+            if ($rule['required'] ?? false) {
+                $value = $setupData[$rule['name']] ?? null;
+
+                if (empty($value)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
 }
