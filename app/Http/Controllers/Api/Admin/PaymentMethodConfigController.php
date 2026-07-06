@@ -42,7 +42,15 @@ class PaymentMethodConfigController extends Controller
 
         $configs = $query->paginate($request->input('per_page', 15));
 
-        return response()->json($configs);
+        // Adicionar informação de completude de setup
+        $data = $configs->toArray();
+        $data['data'] = array_map(function ($item) {
+            $config = PaymentMethodConfig::find($item['id']);
+            $item['is_setup_complete'] = $config->isSetupComplete();
+            return $item;
+        }, $data['data']);
+
+        return response()->json($data);
     }
 
     public function show(Request $request, PaymentMethodConfig $paymentMethodConfig): JsonResponse
@@ -53,7 +61,12 @@ class PaymentMethodConfigController extends Controller
             abort(403);
         }
 
-        return response()->json($paymentMethodConfig);
+        $data = $paymentMethodConfig->toArray();
+        $data['setup_field_rules'] = $paymentMethodConfig->getSetupFieldRules();
+        $data['setup_field_defaults'] = $paymentMethodConfig->getSetupFieldDefaults();
+        $data['is_setup_complete'] = $paymentMethodConfig->isSetupComplete();
+
+        return response()->json($data);
     }
 
     public function update(
@@ -62,14 +75,25 @@ class PaymentMethodConfigController extends Controller
     ): JsonResponse {
         $validated = $request->validated();
 
+        // Processar instructions como JSON
         if ($request->has('instructions') && is_array($request->get('instructions'))) {
             $instructions = $request->get('instructions');
             $validated['instructions'] = !empty($instructions) ? json_encode($instructions) : null;
         }
 
+        // Processar setup_fields (já validado no request)
+        if ($request->has('setup_fields')) {
+            $setupFields = $request->get('setup_fields');
+            $validated['setup_fields'] = !empty($setupFields) ? $setupFields : null;
+        }
+
         $paymentMethodConfig->update($validated);
 
-        return response()->json($paymentMethodConfig);
+        $data = $paymentMethodConfig->toArray();
+        $data['setup_field_rules'] = $paymentMethodConfig->getSetupFieldRules();
+        $data['is_setup_complete'] = $paymentMethodConfig->isSetupComplete();
+
+        return response()->json($data);
     }
 
     public function toggle(Request $request, PaymentMethodConfig $paymentMethodConfig): JsonResponse
