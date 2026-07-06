@@ -151,4 +151,34 @@ class CreditPurchaseController extends Controller
 
         return response()->json($purchases);
     }
+
+    /**
+     * Cancel a credit purchase (only if not approved).
+     * DELETE /api/credit-purchases/{id}
+     */
+    public function destroy(CreditPurchase $creditPurchase): JsonResponse
+    {
+        $user = auth()->user();
+
+        if ($user->hasRole('customer') && $user->id !== $creditPurchase->customer_id) {
+            return response()->json([
+                'message' => 'Unauthorized',
+            ], 403);
+        }
+
+        if ($creditPurchase->status === CreditPurchaseStatus::APPROVED) {
+            return response()->json([
+                'message' => 'Cannot cancel an approved purchase',
+            ], 422);
+        }
+
+        $creditPurchase->update([
+            'status' => CreditPurchaseStatus::CANCELLED,
+        ]);
+
+        return response()->json([
+            'data' => $creditPurchase->load(['wallet.client', 'customer', 'payments']),
+            'message' => 'Purchase cancelled successfully',
+        ]);
+    }
 }

@@ -89,4 +89,58 @@ class PaymentReceiptController extends Controller
 
         return Storage::disk('local')->download($creditPurchasePayment->pix_receipt_path);
     }
+
+    /**
+     * Delete receipt from a pending payment.
+     * DELETE /api/credit-purchases/{id}/payments/{payment}/receipt
+     */
+    public function destroy(
+        CreditPurchase $creditPurchase,
+        CreditPurchasePayment $creditPurchasePayment
+    ): JsonResponse {
+        $user = auth()->user();
+
+        if ($user->hasRole('customer') && $user->id !== $creditPurchase->customer_id) {
+            return response()->json([
+                'message' => 'Unauthorized',
+            ], 403);
+        }
+
+        if ($creditPurchasePayment->credit_purchase_id !== $creditPurchase->id) {
+            return response()->json([
+                'message' => 'Payment does not belong to this purchase',
+            ], 422);
+        }
+
+        if ($creditPurchasePayment->payment_status !== PaymentStatus::PENDING) {
+            return response()->json([
+                'message' => 'Can only delete receipt from pending payments',
+            ], 422);
+        }
+
+        if ($creditPurchasePayment->isExpired()) {
+            return response()->json([
+                'message' => 'Cannot delete receipt from expired payment',
+            ], 422);
+        }
+
+        if (! $creditPurchasePayment->pix_receipt_path) {
+            return response()->json([
+                'message' => 'No receipt to delete',
+            ], 404);
+        }
+
+        if (Storage::disk('local')->exists($creditPurchasePayment->pix_receipt_path)) {
+            Storage::disk('local')->delete($creditPurchasePayment->pix_receipt_path);
+        }
+
+        $creditPurchasePayment->update([
+            'pix_receipt_path' => null,
+        ]);
+
+        return response()->json([
+            'data' => $creditPurchasePayment,
+            'message' => 'Receipt deleted successfully',
+        ]);
+    }
 }

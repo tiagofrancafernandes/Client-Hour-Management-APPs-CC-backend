@@ -153,11 +153,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/', [CreditPurchaseController::class, 'index']);
         Route::post('/', [CreditPurchaseController::class, 'store']);
         Route::get('/{creditPurchase}', [CreditPurchaseController::class, 'show']);
+        Route::delete('/{creditPurchase}', [CreditPurchaseController::class, 'destroy']);
 
         // Payment routes
         Route::post('/{creditPurchase}/payments', [PaymentController::class, 'store']);
         Route::put('/{creditPurchase}/payments/{creditPurchasePayment}/set-method', [PaymentController::class, 'setMethod']);
         Route::post('/{creditPurchase}/payments/{creditPurchasePayment}/upload-receipt', [PaymentReceiptController::class, 'store']);
+        Route::delete('/{creditPurchase}/payments/{creditPurchasePayment}/receipt', [PaymentReceiptController::class, 'destroy']);
     });
 
     // Payment Routes (Admin approval + receipt URL)
