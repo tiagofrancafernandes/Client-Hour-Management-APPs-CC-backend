@@ -33,12 +33,35 @@ class ProductServiceController extends Controller
 
         $isActive = $request->input('is_active');
 
-        if ($isActive !== null) {
+        if ($isActive !== null && $isActive !== '') {
             $query->where('is_active', filter_var($isActive, FILTER_VALIDATE_BOOLEAN));
         }
 
+        $sortBy = (string) $request->input('sort_by', 'name');
+        $sortDirection = strtolower((string) $request->input('sort_direction', 'asc'));
+
+        $allowedSortFields = [
+            'name',
+            'type',
+            'unit',
+            'default_price',
+            'default_quantity',
+            'is_active',
+            'created_at',
+        ];
+
+        if (!in_array($sortBy, $allowedSortFields, true)) {
+            $sortBy = 'name';
+        }
+
+        if (!in_array($sortDirection, ['asc', 'desc'], true)) {
+            $sortDirection = 'asc';
+        }
+
+        $query->orderBy($sortBy, $sortDirection);
+
         if ($request->boolean('all')) {
-            $productsServices = $query->orderBy('name')->get();
+            $productsServices = $query->get();
 
             return response()->json(['data' => $productsServices]);
         }
@@ -49,7 +72,7 @@ class ProductServiceController extends Controller
             $perPage = 20;
         }
 
-        $productsServices = $query->orderBy('name')->paginate($perPage);
+        $productsServices = $query->paginate($perPage);
 
         return response()->json($productsServices);
     }

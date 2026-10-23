@@ -101,3 +101,4 @@ Accept: application/json
 DELETE {{baseUrl}}/invoices/1
 Authorization: Bearer {{authToken}}
 Accept: application/json
+

@@ -1,0 +1,82 @@
+### Variables
+@baseUrl = https://api.hourledger.local.com/api
+@authToken = {{login.response.body.token}}
+
+### 1. Authenticate / Login
+# @name login
+POST {{baseUrl}}/login
+Content-Type: application/json
+Accept: application/json
+
+{
+    "email": "admin@mail.com",
+    "password": "power@123"
+}
+
+### 2. List Products & Services (Paginated with search, filters, and sorting)
+GET {{baseUrl}}/products-services?search=&type=&is_active=&sort_by=name&sort_direction=asc&page=1&per_page=15
+Authorization: Bearer {{authToken}}
+Accept: application/json
+
+### 3. List All Products & Services (Full catalog for dropdowns/typeahead)
+GET {{baseUrl}}/products-services?all=1
+Authorization: Bearer {{authToken}}
+Accept: application/json
+
+### 4. Create Product / Service (Service)
+# @name createService
+POST {{baseUrl}}/products-services
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "name": "Cloud Architecture Consulting",
+    "description": "Specialized consulting on cloud infrastructure, scalability, and DevOps",
+    "type": "service",
+    "unit": "hour",
+    "default_price": 180.00,
+    "default_quantity": 10.00,
+    "is_active": true
+}
+
+### 5. Create Product / Service (Product)
+# @name createProduct
+POST {{baseUrl}}/products-services
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "name": "Enterprise Annual Software License",
+    "description": "Annual enterprise license key for self-hosted instances",
+    "type": "product",
+    "unit": "license",
+    "default_price": 2400.00,
+    "default_quantity": 1.00,
+    "is_active": true
+}
+
+### 6. Show Product / Service
+@serviceId = {{createService.response.body.id}}
+GET {{baseUrl}}/products-services/{{serviceId}}
+Authorization: Bearer {{authToken}}
+Accept: application/json
+
+### 7. Update Product / Service
+PUT {{baseUrl}}/products-services/{{serviceId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "name": "Cloud Architecture & DevOps Consulting",
+    "description": "Specialized senior consulting on cloud infrastructure, Kubernetes, and CI/CD",
+    "default_price": 200.00,
+    "is_active": true
+}
+
+### 8. Delete Product / Service
+DELETE {{baseUrl}}/products-services/{{serviceId}}
+Authorization: Bearer {{authToken}}
+Accept: application/json

@@ -147,7 +147,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/invoices/{invoice}/download-markdown', [InvoiceController::class, 'downloadMarkdown']);
 
     // Products and Services Routes
-    Route::apiResource('products-services', ProductServiceController::class);
+    Route::apiResource('products-services', ProductServiceController::class)->parameters([
+        'products-services' => 'productService',
+    ]);
 
     // Credit Purchase Routes
     Route::prefix('credit-purchases')->group(function () {
