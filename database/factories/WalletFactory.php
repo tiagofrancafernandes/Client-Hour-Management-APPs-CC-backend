@@ -27,6 +27,8 @@ class WalletFactory extends Factory
             'hourly_rate_reference' => fake()->randomFloat(2, 50, 200),
             'currency_code' => 'BRL',
             'credit_purchase_allowed' => false,
+            'discounts_enabled' => false,
+            'discounts_config' => Wallet::DEFAULT_DISCOUNTS_CONFIG,
         ];
     }
 }

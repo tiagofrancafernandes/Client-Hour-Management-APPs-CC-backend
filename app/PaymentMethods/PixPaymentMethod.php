@@ -25,10 +25,10 @@ class PixPaymentMethod extends AbstractPaymentMethod
     }
 
     /**
-     * Expires in 10 minutes after method is assigned.
+     * Expires in 60 minutes after method is assigned.
      */
     public function expiresTime(): string|int|null
     {
-        return '+10 minutes';
+        return '+60 minutes';
     }
 }

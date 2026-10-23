@@ -19,6 +19,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $currency_code
  * @property string|null $internal_note
  * @property bool $credit_purchase_allowed
+ * @property bool $discounts_enabled
+ * @property array $discounts_config
  * @property-read Client $client
  * @property-read \Illuminate\Database\Eloquent\Collection<int, CreditPurchase> $creditPurchases
  * @property-read int|null $credit_purchases_count
@@ -45,6 +47,13 @@ class Wallet extends Model
 {
     use HasFactory;
 
+    public const DEFAULT_DISCOUNTS_CONFIG = [
+        '5h' => 0,
+        '10h' => 10,
+        '15h' => 15,
+        'greater_than_15h' => 20,
+    ];
+
     protected $fillable = [
         'client_id',
         'name',
@@ -53,11 +62,61 @@ class Wallet extends Model
         'currency_code',
         'internal_note',
         'credit_purchase_allowed',
+        'discounts_enabled',
+        'discounts_config',
     ];
 
     protected $casts = [
         'hourly_rate_reference' => 'decimal:2',
+        'credit_purchase_allowed' => 'boolean',
+        'discounts_enabled' => 'boolean',
+        'discounts_config' => 'array',
     ];
+
+    public function getDiscountsConfigAttribute($value): array
+    {
+        if ($value === null) {
+            return self::DEFAULT_DISCOUNTS_CONFIG;
+        }
+
+        $decoded = is_string($value) ? json_decode($value, true) : $value;
+
+        if (!is_array($decoded)) {
+            return self::DEFAULT_DISCOUNTS_CONFIG;
+        }
+
+        if (isset($decoded['greater than 15h']) && !isset($decoded['greater_than_15h'])) {
+            $decoded['greater_than_15h'] = $decoded['greater than 15h'];
+        }
+
+        return array_merge(self::DEFAULT_DISCOUNTS_CONFIG, $decoded);
+    }
+
+    public function setDiscountsConfigAttribute($value): void
+    {
+        if (is_null($value)) {
+            $this->attributes['discounts_config'] = null;
+
+            return;
+        }
+
+        if (is_string($value)) {
+            $value = json_decode($value, true);
+        }
+
+        if (is_array($value)) {
+            if (isset($value['greater than 15h']) && !isset($value['greater_than_15h'])) {
+                $value['greater_than_15h'] = $value['greater than 15h'];
+                unset($value['greater than 15h']);
+            }
+
+            $this->attributes['discounts_config'] = json_encode($value);
+
+            return;
+        }
+
+        $this->attributes['discounts_config'] = null;
+    }
 
     public function client(): BelongsTo
     {

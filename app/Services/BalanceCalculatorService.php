@@ -53,6 +53,8 @@ class BalanceCalculatorService
             'currency_code' => $wallet->currency_code,
             'internal_note' => $wallet->internal_note,
             'credit_purchase_allowed' => $wallet->credit_purchase_allowed,
+            'discounts_enabled' => $wallet->discounts_enabled,
+            'discounts_config' => $wallet->discounts_config,
             'created_at' => $wallet->created_at,
             'updated_at' => $wallet->updated_at,
         ])->toArray();

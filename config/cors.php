@@ -42,7 +42,28 @@ return [
         )
     ],
 
-    'allowed_origins_patterns' => [],
+    'allowed_origins_patterns' => [
+        '#^https?://.*\.vercel\.app$#',
+        ...(env('CORS_ALLOW_ALL', false) || env('CORS_ALLOW_ALL_ORIGINS', false) ? ['#^.*$#'] : []),
+        ...array_filter(
+            array_map(function ($pattern) {
+                $trimmed = trim("{$pattern}");
+
+                if ($trimmed === '') {
+                    return null;
+                }
+
+                if (preg_match('/^([#\/~]).*\1[imsxeADSUXJu]*$/', $trimmed)) {
+                    return $trimmed;
+                }
+
+                $escaped = preg_quote($trimmed, '#');
+                $regex = str_replace('\*', '.*', $escaped);
+
+                return "#^{$regex}$#i";
+            }, explode(',', strval(env('ALLOWED_ORIGINS_PATTERNS', env('ALLOWED_ORIGIN_PATTERNS', '')))))
+        ),
+    ],
 
     'allowed_headers' => ['*'],
 

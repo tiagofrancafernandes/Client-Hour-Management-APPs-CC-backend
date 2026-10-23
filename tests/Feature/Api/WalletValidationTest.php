@@ -138,4 +138,118 @@ class WalletValidationTest extends TestCase
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['hourly_rate_reference']);
     }
+
+    public function testCanConfigureDiscountsOnWalletCreation(): void
+    {
+        $response = $this->actingAs($this->admin)
+            ->postJson('/api/wallets', [
+                'client_id' => $this->client->id,
+                'name' => 'Discount Wallet',
+                'credit_purchase_allowed' => true,
+                'hourly_rate_reference' => 100.00,
+                'currency_code' => 'USD',
+                'discounts_enabled' => true,
+                'discounts_config' => [
+                    '5h' => 5,
+                    '10h' => 12,
+                    '15h' => 18,
+                    'greater_than_15h' => 25,
+                ],
+            ]);
+
+        $response->assertStatus(201);
+        $response->assertJson([
+            'discounts_enabled' => true,
+            'discounts_config' => [
+                '5h' => 5,
+                '10h' => 12,
+                '15h' => 18,
+                'greater_than_15h' => 25,
+            ],
+        ]);
+    }
+
+    public function testCanUpdateWalletDiscounts(): void
+    {
+        $wallet = $this->client->wallets()->create([
+            'name' => 'Discount Wallet',
+            'credit_purchase_allowed' => true,
+            'hourly_rate_reference' => 100.00,
+            'currency_code' => 'USD',
+            'discounts_enabled' => false,
+        ]);
+
+        $response = $this->actingAs($this->admin)
+            ->putJson("/api/wallets/{$wallet->id}", [
+                'discounts_enabled' => true,
+                'discounts_config' => [
+                    '5h' => 5,
+                    '10h' => 10,
+                    '15h' => 15,
+                    'greater_than_15h' => 20,
+                ],
+            ]);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'discounts_enabled' => true,
+            'discounts_config' => [
+                '5h' => 5,
+                '10h' => 10,
+                '15h' => 15,
+                'greater_than_15h' => 20,
+            ],
+        ]);
+    }
+
+    public function testValidatesDiscountValuesBetweenZeroAndHundred(): void
+    {
+        $response = $this->actingAs($this->admin)
+            ->postJson('/api/wallets', [
+                'client_id' => $this->client->id,
+                'name' => 'Invalid Discount Wallet',
+                'discounts_enabled' => true,
+                'discounts_config' => [
+                    '5h' => -10,
+                    '10h' => 150,
+                ],
+            ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors([
+            'discounts_config.5h',
+            'discounts_config.10h',
+        ]);
+    }
+
+    public function testUserWithoutUpdateRulesPermissionCannotModifyDiscounts(): void
+    {
+        $operator = User::factory()->create();
+        $operatorRole = Role::firstOrCreate(['name' => 'operator']);
+        $operatorRole->syncPermissions([
+            'wallet.view',
+            'wallet.update',
+        ]);
+        $operator->assignRole($operatorRole);
+
+        $wallet = $this->client->wallets()->create([
+            'name' => 'Protected Wallet',
+            'discounts_enabled' => false,
+        ]);
+
+        $response = $this->actingAs($operator)
+            ->putJson("/api/wallets/{$wallet->id}", [
+                'name' => 'Renamed Wallet',
+                'discounts_enabled' => true,
+                'discounts_config' => [
+                    '5h' => 50,
+                ],
+            ]);
+
+        $response->assertStatus(200);
+
+        $wallet->refresh();
+        $this->assertSame('Renamed Wallet', $wallet->name);
+        $this->assertFalse($wallet->discounts_enabled);
+    }
 }

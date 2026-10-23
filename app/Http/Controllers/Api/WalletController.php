@@ -59,6 +59,8 @@ class WalletController extends Controller
 
         if (! auth()->user()?->hasPermissionTo('wallet.update_rules')) {
             unset($validated['credit_purchase_allowed']);
+            unset($validated['discounts_enabled']);
+            unset($validated['discounts_config']);
         }
 
         $wallet = Wallet::create($validated);
@@ -101,6 +103,8 @@ class WalletController extends Controller
 
         if (! auth()->user()?->hasPermissionTo('wallet.update_rules')) {
             unset($validated['credit_purchase_allowed']);
+            unset($validated['discounts_enabled']);
+            unset($validated['discounts_config']);
         }
 
         $wallet->update($validated);

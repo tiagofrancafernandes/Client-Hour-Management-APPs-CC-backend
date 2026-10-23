@@ -31,6 +31,13 @@ class StoreWalletRequest extends FormRequest
                 'uppercase',
             ],
             'credit_purchase_allowed' => ['nullable', 'boolean'],
+            'discounts_enabled' => ['nullable', 'boolean'],
+            'discounts_config' => ['nullable', 'array'],
+            'discounts_config.5h' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'discounts_config.10h' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'discounts_config.15h' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'discounts_config.greater_than_15h' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'discounts_config.greater than 15h' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ];
     }
 
