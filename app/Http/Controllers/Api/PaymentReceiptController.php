@@ -45,6 +45,10 @@ class PaymentReceiptController extends Controller
         $file = $request->file('receipt');
         $path = "pix-receipts/{$creditPurchase->id}/" . uniqid() . '.' . $file->getClientOriginalExtension();
 
+        if ($creditPurchasePayment->pix_receipt_path) {
+            $creditPurchasePayment->deleteReceiptFile();
+        }
+
         Storage::disk($this->getStorageDisk())->putFileAs(
             dirname($path),
             $file,
@@ -119,7 +123,7 @@ class PaymentReceiptController extends Controller
             ], 422);
         }
 
-        if ($creditPurchasePayment->isExpired()) {
+        if ($user->hasRole('customer') && $creditPurchasePayment->isExpired()) {
             return response()->json([
                 'message' => 'Cannot delete receipt from expired payment',
             ], 422);
@@ -131,9 +135,7 @@ class PaymentReceiptController extends Controller
             ], 404);
         }
 
-        if (Storage::disk($this->getStorageDisk())->exists($creditPurchasePayment->pix_receipt_path)) {
-            Storage::disk($this->getStorageDisk())->delete($creditPurchasePayment->pix_receipt_path);
-        }
+        $creditPurchasePayment->deleteReceiptFile();
 
         $creditPurchasePayment->update([
             'pix_receipt_path' => null,

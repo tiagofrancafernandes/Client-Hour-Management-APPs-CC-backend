@@ -7,6 +7,7 @@ use App\Enums\PaymentStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * @property int $id
@@ -59,6 +60,32 @@ class CreditPurchasePayment extends Model
         'receipt_approved_at' => 'datetime',
         'expires_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::deleting(function (CreditPurchasePayment $payment) {
+            $payment->deleteReceiptFile();
+        });
+    }
+
+    /**
+     * Delete the receipt file from configured storage.
+     */
+    public function deleteReceiptFile(): bool
+    {
+        if (! $this->pix_receipt_path) {
+            return false;
+        }
+
+        $disk = config('filesystems.receipts_disk', config('filesystems.default', 'local'));
+        $deleted = Storage::disk($disk)->delete($this->pix_receipt_path);
+
+        if ($disk !== 'local' && Storage::disk('local')->exists($this->pix_receipt_path)) {
+            Storage::disk('local')->delete($this->pix_receipt_path);
+        }
+
+        return $deleted;
+    }
 
     public function creditPurchase(): BelongsTo
     {

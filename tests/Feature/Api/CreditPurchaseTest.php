@@ -453,7 +453,8 @@ class CreditPurchaseTest extends TestCase
 
     public function testCanUploadReceiptForPayment(): void
     {
-        Storage::fake('local');
+        $disk = config('filesystems.receipts_disk', config('filesystems.default', 'local'));
+        Storage::fake($disk);
 
         $purchase = CreditPurchase::factory()->create([
             'wallet_id' => $this->wallet->id,
@@ -477,7 +478,9 @@ class CreditPurchaseTest extends TestCase
         $response->assertStatus(200);
         $response->assertJsonPath('message', 'Receipt uploaded successfully');
 
-        $this->assertNotNull($response->json('data.pix_receipt_path'));
+        $path = $response->json('data.pix_receipt_path');
+        $this->assertNotNull($path);
+        Storage::disk($disk)->assertExists($path);
     }
 
     public function testReceiptUploadRequiresValidFile(): void
@@ -501,7 +504,8 @@ class CreditPurchaseTest extends TestCase
 
     public function testCustomerCannotUploadReceiptForAnotherCustomerPayment(): void
     {
-        Storage::fake('local');
+        $disk = config('filesystems.receipts_disk', config('filesystems.default', 'local'));
+        Storage::fake($disk);
 
         $otherCustomer = User::factory()->create();
         $otherCustomer->assignRole('customer');
@@ -525,6 +529,143 @@ class CreditPurchaseTest extends TestCase
             ]);
 
         $response->assertStatus(403);
+    }
+
+    public function testCanDeleteReceiptForPendingPaymentDeletesFromStorage(): void
+    {
+        $disk = config('filesystems.receipts_disk', config('filesystems.default', 'local'));
+        Storage::fake($disk);
+
+        $purchase = CreditPurchase::factory()->create([
+            'wallet_id' => $this->wallet->id,
+            'customer_id' => $this->customer->id,
+            'status' => CreditPurchaseStatus::PENDING,
+        ]);
+
+        $payment = CreditPurchasePayment::factory()->create([
+            'credit_purchase_id' => $purchase->id,
+            'payment_method' => 'pix_offline',
+            'payment_status' => PaymentStatus::PENDING,
+            'expires_at' => Carbon::now()->addHours(24),
+        ]);
+
+        $file = UploadedFile::fake()->image('receipt.jpg');
+
+        $uploadResponse = $this->actingAs($this->customer)
+            ->postJson("/api/credit-purchases/{$purchase->id}/payments/{$payment->id}/upload-receipt", [
+                'receipt' => $file,
+            ]);
+
+        $uploadResponse->assertStatus(200);
+        $receiptPath = $uploadResponse->json('data.pix_receipt_path');
+        Storage::disk($disk)->assertExists($receiptPath);
+
+        $deleteResponse = $this->actingAs($this->customer)
+            ->deleteJson("/api/credit-purchases/{$purchase->id}/payments/{$payment->id}/receipt");
+
+        $deleteResponse->assertStatus(200);
+        $deleteResponse->assertJsonPath('message', 'Receipt deleted successfully');
+
+        $this->assertDatabaseHas('credit_purchase_payments', [
+            'id' => $payment->id,
+            'pix_receipt_path' => null,
+        ]);
+
+        Storage::disk($disk)->assertMissing($receiptPath);
+    }
+
+    public function testReuploadingReceiptDeletesPreviousFileFromStorage(): void
+    {
+        $disk = config('filesystems.receipts_disk', config('filesystems.default', 'local'));
+        Storage::fake($disk);
+
+        $purchase = CreditPurchase::factory()->create([
+            'wallet_id' => $this->wallet->id,
+            'customer_id' => $this->customer->id,
+            'status' => CreditPurchaseStatus::PENDING,
+        ]);
+
+        $payment = CreditPurchasePayment::factory()->create([
+            'credit_purchase_id' => $purchase->id,
+            'payment_method' => 'pix_offline',
+            'payment_status' => PaymentStatus::PENDING,
+            'expires_at' => Carbon::now()->addHours(24),
+        ]);
+
+        $firstFile = UploadedFile::fake()->image('receipt1.jpg');
+        $firstResponse = $this->actingAs($this->customer)
+            ->postJson("/api/credit-purchases/{$purchase->id}/payments/{$payment->id}/upload-receipt", [
+                'receipt' => $firstFile,
+            ]);
+
+        $firstPath = $firstResponse->json('data.pix_receipt_path');
+        Storage::disk($disk)->assertExists($firstPath);
+
+        $secondFile = UploadedFile::fake()->image('receipt2.png');
+        $secondResponse = $this->actingAs($this->customer)
+            ->postJson("/api/credit-purchases/{$purchase->id}/payments/{$payment->id}/upload-receipt", [
+                'receipt' => $secondFile,
+            ]);
+
+        $secondPath = $secondResponse->json('data.pix_receipt_path');
+        $this->assertNotEquals($firstPath, $secondPath);
+        Storage::disk($disk)->assertMissing($firstPath);
+        Storage::disk($disk)->assertExists($secondPath);
+    }
+
+    public function testDeletingPaymentModelDeletesReceiptFromStorage(): void
+    {
+        $disk = config('filesystems.receipts_disk', config('filesystems.default', 'local'));
+        Storage::fake($disk);
+
+        $purchase = CreditPurchase::factory()->create([
+            'wallet_id' => $this->wallet->id,
+            'customer_id' => $this->customer->id,
+            'status' => CreditPurchaseStatus::PENDING,
+        ]);
+
+        $payment = CreditPurchasePayment::factory()->create([
+            'credit_purchase_id' => $purchase->id,
+            'payment_method' => 'pix_offline',
+            'payment_status' => PaymentStatus::PENDING,
+        ]);
+
+        $file = UploadedFile::fake()->image('receipt.jpg');
+        $response = $this->actingAs($this->customer)
+            ->postJson("/api/credit-purchases/{$purchase->id}/payments/{$payment->id}/upload-receipt", [
+                'receipt' => $file,
+            ]);
+
+        $path = $response->json('data.pix_receipt_path');
+        Storage::disk($disk)->assertExists($path);
+
+        $payment->fresh()->delete();
+
+        Storage::disk($disk)->assertMissing($path);
+    }
+
+    public function testCannotDeleteReceiptFromApprovedPayment(): void
+    {
+        $disk = config('filesystems.receipts_disk', config('filesystems.default', 'local'));
+        Storage::fake($disk);
+
+        $purchase = CreditPurchase::factory()->create([
+            'wallet_id' => $this->wallet->id,
+            'customer_id' => $this->customer->id,
+            'status' => CreditPurchaseStatus::APPROVED,
+        ]);
+
+        $payment = CreditPurchasePayment::factory()->create([
+            'credit_purchase_id' => $purchase->id,
+            'payment_method' => 'pix_offline',
+            'payment_status' => PaymentStatus::APPROVED,
+            'pix_receipt_path' => 'pix-receipts/dummy.jpg',
+        ]);
+
+        $response = $this->actingAs($this->customer)
+            ->deleteJson("/api/credit-purchases/{$purchase->id}/payments/{$payment->id}/receipt");
+
+        $response->assertStatus(422);
     }
 
     // ─────────────────────────────────────────────────────────────
