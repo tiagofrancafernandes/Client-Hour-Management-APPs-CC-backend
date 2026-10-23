@@ -1,0 +1,103 @@
+### Variables
+@baseUrl = https://api.hourledger.local.com/api
+@authToken = {{login.response.body.token}}
+
+### 1. Authenticate / Login
+# @name login
+POST {{baseUrl}}/login
+Content-Type: application/json
+Accept: application/json
+
+{
+    "email": "admin@mail.com",
+    "password": "power@123"
+}
+
+### 2. List Invoices (with search, sort, filter, and pagination)
+GET {{baseUrl}}/invoices?search=&sort_by=issue_date&sort_direction=desc&page=1&per_page=15
+Authorization: Bearer {{authToken}}
+Accept: application/json
+
+### 3. Get Next Invoice Number for Client
+GET {{baseUrl}}/invoices/next-number?client_id=1
+Authorization: Bearer {{authToken}}
+Accept: application/json
+
+### 4. Create Invoice (Auto-generated code like C1-I001)
+POST {{baseUrl}}/invoices
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "client_id": 1,
+    "issue_date": "2026-10-23",
+    "due_date": "2026-11-06",
+    "currency": "USD",
+    "tax_percentage": 5,
+    "discount_amount": 0,
+    "status": "draft",
+    "notes": "Invoice generated for monthly services",
+    "items": [
+        {
+            "description": "Custom Software Engineering",
+            "unit": "hour",
+            "quantity": 20,
+            "unit_price": 120.00,
+            "product_service_id": null
+        }
+    ]
+}
+
+### 5. Create Invoice with Custom Number (Explicit client_invoice_number: 5 -> #C1-I005)
+POST {{baseUrl}}/invoices
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "client_id": 1,
+    "client_invoice_number": 5,
+    "issue_date": "2026-10-23",
+    "due_date": "2026-11-06",
+    "currency": "USD",
+    "tax_percentage": 0,
+    "discount_amount": 50,
+    "status": "sent",
+    "notes": "Custom numbered invoice",
+    "items": [
+        {
+            "description": "Architecture Review",
+            "unit": "unit",
+            "quantity": 1,
+            "unit_price": 750.00,
+            "product_service_id": null
+        }
+    ]
+}
+
+### 6. Get Invoice Details
+GET {{baseUrl}}/invoices/1
+Authorization: Bearer {{authToken}}
+Accept: application/json
+
+### 7. Update Invoice
+PUT {{baseUrl}}/invoices/1
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "status": "sent",
+    "notes": "Updated invoice notes"
+}
+
+### 8. Download Invoice Markdown
+GET {{baseUrl}}/invoices/1/download-markdown
+Authorization: Bearer {{authToken}}
+Accept: application/json
+
+### 9. Delete Invoice
+DELETE {{baseUrl}}/invoices/1
+Authorization: Bearer {{authToken}}
+Accept: application/json

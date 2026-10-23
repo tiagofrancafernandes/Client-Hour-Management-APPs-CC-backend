@@ -142,6 +142,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
     // Invoice Routes
+    Route::get('/invoices/next-number', [InvoiceController::class, 'nextNumber']);
     Route::apiResource('invoices', InvoiceController::class);
     Route::get('/invoices/{invoice}/download-markdown', [InvoiceController::class, 'downloadMarkdown']);
 

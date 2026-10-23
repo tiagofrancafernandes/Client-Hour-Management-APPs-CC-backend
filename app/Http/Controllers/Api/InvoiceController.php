@@ -9,14 +9,37 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 
 class InvoiceController extends Controller
 {
+    public function nextNumber(Request $request): JsonResponse
+    {
+        Gate::authorize('invoice.create');
+
+        $clientId = (int) $request->input('client_id');
+
+        if (!$clientId) {
+            return response()->json(['message' => 'client_id is required'], 422);
+        }
+
+        $nextNumber = Invoice::getNextClientInvoiceNumber($clientId);
+        $paddedNumber = str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
+        $code = "C{$clientId}-I{$paddedNumber}";
+
+        return response()->json([
+            'client_id' => $clientId,
+            'next_client_invoice_number' => $nextNumber,
+            'code' => $code,
+            'formatted_code' => "#{$code}",
+        ]);
+    }
+
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
 
-        $query = Invoice::with(['client', 'items']);
+        $query = Invoice::with(['client', 'items.productService']);
 
         if (Gate::allows('invoice.view_any')) {
             $clientId = $request->input('client_id');
@@ -56,7 +79,58 @@ class InvoiceController extends Controller
             $query->where('issue_date', '<=', $toDate);
         }
 
-        $invoices = $query->orderBy('issue_date', 'desc')->paginate(15);
+        $search = $request->input('search');
+
+        if ($search) {
+            $cleanSearch = trim($search);
+
+            $query->where(function ($q) use ($cleanSearch) {
+                $q->whereHas('client', function ($clientQuery) use ($cleanSearch) {
+                    $clientQuery->where('name', 'ILIKE', "%{$cleanSearch}%");
+                })
+                ->orWhere('notes', 'ILIKE', "%{$cleanSearch}%")
+                ->orWhereHas('items', function ($itemQuery) use ($cleanSearch) {
+                    $itemQuery->where('description', 'ILIKE', "%{$cleanSearch}%");
+                });
+
+                if (is_numeric($cleanSearch)) {
+                    $q->orWhere('invoice_number', (int) $cleanSearch)
+                      ->orWhere('client_invoice_number', (int) $cleanSearch);
+                }
+
+                if (preg_match('/^#?C(\d+)-I(\d+)$/i', $cleanSearch, $matches)) {
+                    $q->orWhere(function ($sub) use ($matches) {
+                        $sub->where('client_id', (int) $matches[1])
+                            ->where('client_invoice_number', (int) $matches[2]);
+                    });
+                }
+            });
+        }
+
+        $sortBy = $request->input('sort_by', 'issue_date');
+        $sortDirection = strtolower($request->input('sort_direction', 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        $allowedSorts = [
+            'issue_date',
+            'due_date',
+            'total',
+            'status',
+            'client_invoice_number',
+            'invoice_number',
+            'created_at',
+        ];
+
+        if (!in_array($sortBy, $allowedSorts, true)) {
+            $sortBy = 'issue_date';
+        }
+
+        $perPage = (int) $request->input('per_page', 15);
+
+        if ($perPage < 1 || $perPage > 100) {
+            $perPage = 15;
+        }
+
+        $invoices = $query->orderBy($sortBy, $sortDirection)->paginate($perPage);
 
         return response()->json($invoices);
     }
@@ -67,6 +141,12 @@ class InvoiceController extends Controller
 
         $validated = $request->validate([
             'client_id' => 'required|exists:clients,id',
+            'client_invoice_number' => [
+                'nullable',
+                'integer',
+                'min:1',
+                Rule::unique('invoices', 'client_invoice_number')->where('client_id', $request->input('client_id')),
+            ],
             'issue_date' => 'required|date',
             'due_date' => 'nullable|date|after_or_equal:issue_date',
             'currency' => 'required|string|size:3',
@@ -88,7 +168,7 @@ class InvoiceController extends Controller
         DB::beginTransaction();
 
         try {
-            $invoice = Invoice::create([
+            $invoiceData = [
                 'client_id' => $validated['client_id'],
                 'issue_date' => $validated['issue_date'],
                 'due_date' => $validated['due_date'] ?? null,
@@ -100,7 +180,13 @@ class InvoiceController extends Controller
                 'notes' => $validated['notes'] ?? null,
                 'issued_by' => $validated['issued_by'] ?? null,
                 'bill_to' => $validated['bill_to'] ?? null,
-            ]);
+            ];
+
+            if (!empty($validated['client_invoice_number'])) {
+                $invoiceData['client_invoice_number'] = $validated['client_invoice_number'];
+            }
+
+            $invoice = Invoice::create($invoiceData);
 
             foreach ($validated['items'] as $itemData) {
                 InvoiceItem::create([
@@ -113,7 +199,7 @@ class InvoiceController extends Controller
                 ]);
             }
 
-            $invoice->load(['client', 'items']);
+            $invoice->refresh()->load(['client', 'items.productService']);
 
             DB::commit();
 
@@ -154,7 +240,7 @@ class InvoiceController extends Controller
     public function update(Request $request, Invoice $invoice): JsonResponse
     {
         if (Gate::allows('invoice.update_any')) {
-            // Admin pode atualizar qualquer invoice
+            // Admin can update any invoice
         } else {
             Gate::authorize('invoice.update');
 
@@ -163,8 +249,18 @@ class InvoiceController extends Controller
             }
         }
 
+        $targetClientId = $request->input('client_id', $invoice->client_id);
+
         $validated = $request->validate([
             'client_id' => 'sometimes|exists:clients,id',
+            'client_invoice_number' => [
+                'nullable',
+                'integer',
+                'min:1',
+                Rule::unique('invoices', 'client_invoice_number')
+                    ->where('client_id', $targetClientId)
+                    ->ignore($invoice->id),
+            ],
             'issue_date' => 'sometimes|date',
             'due_date' => 'nullable|date|after_or_equal:issue_date',
             'currency' => 'sometimes|string|size:3',
@@ -187,8 +283,9 @@ class InvoiceController extends Controller
         DB::beginTransaction();
 
         try {
-            $invoice->update(array_filter([
+            $updateData = array_filter([
                 'client_id' => $validated['client_id'] ?? null,
+                'client_invoice_number' => $validated['client_invoice_number'] ?? null,
                 'issue_date' => $validated['issue_date'] ?? null,
                 'due_date' => $validated['due_date'] ?? null,
                 'currency' => $validated['currency'] ?? null,
@@ -199,7 +296,9 @@ class InvoiceController extends Controller
                 'notes' => $validated['notes'] ?? null,
                 'issued_by' => $validated['issued_by'] ?? null,
                 'bill_to' => $validated['bill_to'] ?? null,
-            ], fn ($value) => $value !== null));
+            ], fn ($value) => $value !== null);
+
+            $invoice->update($updateData);
 
             if (isset($validated['items'])) {
                 $existingItemIds = $invoice->items()->pluck('id')->toArray();
@@ -234,7 +333,7 @@ class InvoiceController extends Controller
                 }
             }
 
-            $invoice->load(['client', 'items.productService']);
+            $invoice->refresh()->load(['client', 'items.productService']);
 
             DB::commit();
 
@@ -252,7 +351,7 @@ class InvoiceController extends Controller
     public function destroy(Request $request, Invoice $invoice): JsonResponse
     {
         if (Gate::allows('invoice.update_any')) {
-            // Admin pode deletar qualquer invoice
+            // Admin can delete any invoice
         } else {
             Gate::authorize('invoice.delete');
 
@@ -284,7 +383,7 @@ class InvoiceController extends Controller
             }
         }
 
-        $invoice->load(['client', 'items']);
+        $invoice->load(['client', 'items.productService']);
 
         $markdown = $this->generateMarkdown($invoice);
 
@@ -296,7 +395,7 @@ class InvoiceController extends Controller
         $issuedBy = $invoice->issued_by ?? [];
         $billTo = $invoice->bill_to ?? [];
 
-        $markdown = "# **INVOICE #{$invoice->invoice_number}**\n\n";
+        $markdown = "# **INVOICE {$invoice->formatted_code}**\n\n";
 
         $markdown .= "### Issued by\n\n";
         $markdown .= "<pre>\n";
@@ -325,7 +424,8 @@ class InvoiceController extends Controller
         $markdown .= "</pre>\n\n";
         $markdown .= "---\n\n";
         $markdown .= "### Invoice Details\n\n";
-        $markdown .= "- **Invoice Number:** {$invoice->client_invoice_number}\n";
+        $markdown .= "- **Invoice Code:** {$invoice->formatted_code}\n";
+        $markdown .= "- **Internal Number:** {$invoice->invoice_number}\n";
         $markdown .= "- **Date:** " . $invoice->issue_date->format('F d, Y') . "\n";
 
         if ($invoice->due_date) {

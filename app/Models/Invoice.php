@@ -67,6 +67,23 @@ class Invoice extends Model
         'bill_to' => 'array',
     ];
 
+    protected $appends = [
+        'code',
+        'formatted_code',
+    ];
+
+    public function getCodeAttribute(): string
+    {
+        $paddedNumber = str_pad((string) ($this->client_invoice_number ?? 1), 3, '0', STR_PAD_LEFT);
+
+        return "C{$this->client_id}-I{$paddedNumber}";
+    }
+
+    public function getFormattedCodeAttribute(): string
+    {
+        return "#{$this->code}";
+    }
+
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);

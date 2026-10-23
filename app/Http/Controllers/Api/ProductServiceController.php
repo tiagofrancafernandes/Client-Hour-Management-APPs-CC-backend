@@ -37,7 +37,19 @@ class ProductServiceController extends Controller
             $query->where('is_active', filter_var($isActive, FILTER_VALIDATE_BOOLEAN));
         }
 
-        $productsServices = $query->orderBy('name')->paginate(20);
+        if ($request->boolean('all')) {
+            $productsServices = $query->orderBy('name')->get();
+
+            return response()->json(['data' => $productsServices]);
+        }
+
+        $perPage = (int) $request->input('per_page', 20);
+
+        if ($perPage < 1 || $perPage > 100) {
+            $perPage = 20;
+        }
+
+        $productsServices = $query->orderBy('name')->paginate($perPage);
 
         return response()->json($productsServices);
     }
