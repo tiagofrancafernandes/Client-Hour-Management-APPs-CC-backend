@@ -423,9 +423,9 @@ class InvoiceController extends Controller
 
         $pdf->setPaper('a4', 'portrait');
 
-        header('X-Filename: ' . $filename);
-
-        return $pdf->download($filename);
+        return $pdf->download($filename)
+            ->header('X-Filename', $filename)
+            ->header('Access-Control-Expose-Headers', 'Content-Disposition, X-Filename');
     }
 
     private function generateMarkdown(Invoice $invoice): string
