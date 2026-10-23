@@ -276,4 +276,61 @@ class InvoiceTest extends TestCase
         $response->assertHeader('content-type', 'application/pdf');
         $this->assertStringContainsString("invoice-C{$this->clientA->id}-I005.pdf", $response->headers->get('content-disposition'));
     }
+
+    public function testCanUpdateInvoice(): void
+    {
+        $invoice = Invoice::create([
+            'client_id' => $this->clientA->id,
+            'client_invoice_number' => 1,
+            'issue_date' => '2026-10-23',
+            'currency' => 'BRL',
+            'status' => 'draft',
+        ]);
+
+        $item = $invoice->items()->create([
+            'line_number' => 1,
+            'description' => 'Original item',
+            'unit' => 'unit',
+            'quantity' => 1,
+            'unit_price' => 50,
+            'line_total' => 50,
+        ]);
+
+        $updatePayload = [
+            'client_id' => $this->clientA->id,
+            'client_invoice_number' => 1,
+            'issue_date' => '2026-10-24',
+            'due_date' => '2026-10-25',
+            'currency' => 'USD',
+            'tax_percentage' => 10,
+            'discount_amount' => 5,
+            'status' => 'sent',
+            'hidden' => false,
+            'notes' => 'Updated notes',
+            'items' => [
+                [
+                    'id' => $item->id,
+                    'description' => 'Updated item description',
+                    'unit' => 'hour',
+                    'quantity' => 2,
+                    'unit_price' => 100,
+                    'product_service_id' => $this->serviceItem->id,
+                ],
+            ],
+        ];
+
+        $response = $this->actingAs($this->admin)->putJson("/api/invoices/{$invoice->id}", $updatePayload);
+
+        $response->assertOk()
+            ->assertJson([
+                'id' => $invoice->id,
+                'currency' => 'USD',
+                'status' => 'sent',
+                'notes' => 'Updated notes',
+                'subtotal' => '200.00',
+                'tax_amount' => '20.00',
+                'discount_amount' => '5.00',
+                'total' => '215.00',
+            ]);
+    }
 }

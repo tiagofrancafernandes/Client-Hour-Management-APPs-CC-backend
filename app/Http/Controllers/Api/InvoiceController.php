@@ -252,6 +252,7 @@ class InvoiceController extends Controller
         }
 
         $targetClientId = $request->input('client_id', $invoice->client_id);
+        $targetIssueDate = $request->input('issue_date', $invoice->issue_date?->format('Y-m-d'));
 
         $validated = $request->validate([
             'client_id' => 'sometimes|exists:clients,id',
@@ -264,7 +265,7 @@ class InvoiceController extends Controller
                     ->ignore($invoice->id),
             ],
             'issue_date' => 'sometimes|date',
-            'due_date' => 'nullable|date|after_or_equal:issue_date',
+            'due_date' => 'nullable|date' . ($targetIssueDate ? '|after_or_equal:' . $targetIssueDate : ''),
             'currency' => 'sometimes|string|size:3',
             'tax_percentage' => 'nullable|numeric|min:0|max:100',
             'discount_amount' => 'nullable|numeric|min:0',
@@ -285,20 +286,28 @@ class InvoiceController extends Controller
         DB::beginTransaction();
 
         try {
-            $updateData = array_filter([
-                'client_id' => $validated['client_id'] ?? null,
-                'client_invoice_number' => $validated['client_invoice_number'] ?? null,
-                'issue_date' => $validated['issue_date'] ?? null,
-                'due_date' => $validated['due_date'] ?? null,
-                'currency' => $validated['currency'] ?? null,
-                'tax_percentage' => $validated['tax_percentage'] ?? null,
-                'discount_amount' => $validated['discount_amount'] ?? null,
-                'status' => $validated['status'] ?? null,
-                'hidden' => $validated['hidden'] ?? null,
-                'notes' => $validated['notes'] ?? null,
-                'issued_by' => $validated['issued_by'] ?? null,
-                'bill_to' => $validated['bill_to'] ?? null,
-            ], fn ($value) => $value !== null);
+            $fields = [
+                'client_id',
+                'client_invoice_number',
+                'issue_date',
+                'due_date',
+                'currency',
+                'tax_percentage',
+                'discount_amount',
+                'status',
+                'hidden',
+                'notes',
+                'issued_by',
+                'bill_to',
+            ];
+
+            $updateData = [];
+
+            foreach ($fields as $field) {
+                if (array_key_exists($field, $validated)) {
+                    $updateData[$field] = $validated[$field];
+                }
+            }
 
             $invoice->update($updateData);
 
@@ -307,7 +316,9 @@ class InvoiceController extends Controller
                 $submittedItemIds = array_filter(array_column($validated['items'], 'id'));
                 $itemsToDelete = array_diff($existingItemIds, $submittedItemIds);
 
-                InvoiceItem::whereIn('id', $itemsToDelete)->delete();
+                if (!empty($itemsToDelete)) {
+                    InvoiceItem::whereIn('id', $itemsToDelete)->delete();
+                }
 
                 foreach ($validated['items'] as $itemData) {
                     if (isset($itemData['id'])) {
@@ -334,6 +345,9 @@ class InvoiceController extends Controller
                     }
                 }
             }
+
+            $invoice->recalculateTotals();
+            $invoice->save();
 
             $invoice->refresh()->load(['client', 'items.productService']);
 
