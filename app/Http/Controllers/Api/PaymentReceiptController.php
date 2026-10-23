@@ -45,7 +45,7 @@ class PaymentReceiptController extends Controller
         $file = $request->file('receipt');
         $path = "pix-receipts/{$creditPurchase->id}/" . uniqid() . '.' . $file->getClientOriginalExtension();
 
-        Storage::disk('local')->putFileAs(
+        Storage::disk($this->getStorageDisk())->putFileAs(
             dirname($path),
             $file,
             basename($path),
@@ -82,13 +82,13 @@ class PaymentReceiptController extends Controller
             ], 404);
         }
 
-        if (! Storage::disk('local')->exists($creditPurchasePayment->pix_receipt_path)) {
+        if (! Storage::disk($this->getStorageDisk())->exists($creditPurchasePayment->pix_receipt_path)) {
             return response()->json([
                 'message' => 'Receipt file not found on disk',
             ], 404);
         }
 
-        return Storage::disk('local')->download($creditPurchasePayment->pix_receipt_path);
+        return Storage::disk($this->getStorageDisk())->download($creditPurchasePayment->pix_receipt_path);
     }
 
     /**
@@ -131,8 +131,8 @@ class PaymentReceiptController extends Controller
             ], 404);
         }
 
-        if (Storage::disk('local')->exists($creditPurchasePayment->pix_receipt_path)) {
-            Storage::disk('local')->delete($creditPurchasePayment->pix_receipt_path);
+        if (Storage::disk($this->getStorageDisk())->exists($creditPurchasePayment->pix_receipt_path)) {
+            Storage::disk($this->getStorageDisk())->delete($creditPurchasePayment->pix_receipt_path);
         }
 
         $creditPurchasePayment->update([
@@ -143,5 +143,13 @@ class PaymentReceiptController extends Controller
             'data' => $creditPurchasePayment,
             'message' => 'Receipt deleted successfully',
         ]);
+    }
+
+    /**
+     * Get the configured filesystem disk for receipts.
+     */
+    protected function getStorageDisk(): string
+    {
+        return config('filesystems.receipts_disk', config('filesystems.default', 'local'));
     }
 }
