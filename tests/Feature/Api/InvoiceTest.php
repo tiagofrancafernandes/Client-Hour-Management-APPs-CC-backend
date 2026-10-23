@@ -259,4 +259,21 @@ class InvoiceTest extends TestCase
         $this->assertStringContainsString("# **INVOICE #C{$this->clientA->id}-I005**", $markdown);
         $this->assertStringContainsString("- **Invoice Code:** #C{$this->clientA->id}-I005", $markdown);
     }
+
+    public function testPdfDownloadGeneratesPdfResponseWithCorrectFilename(): void
+    {
+        $invoice = Invoice::create([
+            'client_id' => $this->clientA->id,
+            'client_invoice_number' => 5,
+            'issue_date' => '2026-10-23',
+            'currency' => 'USD',
+            'status' => 'sent',
+        ]);
+
+        $response = $this->actingAs($this->admin)->get("/api/invoices/{$invoice->id}/download-pdf");
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+        $this->assertStringContainsString("invoice-C{$this->clientA->id}-I005.pdf", $response->headers->get('content-disposition'));
+    }
 }

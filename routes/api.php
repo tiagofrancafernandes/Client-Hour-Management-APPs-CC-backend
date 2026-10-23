@@ -145,6 +145,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/invoices/next-number', [InvoiceController::class, 'nextNumber']);
     Route::apiResource('invoices', InvoiceController::class);
     Route::get('/invoices/{invoice}/download-markdown', [InvoiceController::class, 'downloadMarkdown']);
+    Route::get('/invoices/{invoice}/download-pdf', [InvoiceController::class, 'downloadPdf']);
 
     // Products and Services Routes
     Route::apiResource('products-services', ProductServiceController::class)->parameters([

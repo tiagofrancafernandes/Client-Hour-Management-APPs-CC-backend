@@ -97,7 +97,11 @@ GET {{baseUrl}}/invoices/1/download-markdown
 Authorization: Bearer {{authToken}}
 Accept: application/json
 
-### 9. Delete Invoice
+### 9. Download Invoice PDF
+GET {{baseUrl}}/invoices/1/download-pdf
+Authorization: Bearer {{authToken}}
+
+### 10. Delete Invoice
 DELETE {{baseUrl}}/invoices/1
 Authorization: Bearer {{authToken}}
 Accept: application/json

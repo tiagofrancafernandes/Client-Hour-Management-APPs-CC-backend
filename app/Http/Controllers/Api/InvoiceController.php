@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
@@ -388,6 +390,42 @@ class InvoiceController extends Controller
         $markdown = $this->generateMarkdown($invoice);
 
         return response()->json(['markdown' => $markdown]);
+    }
+
+    public function downloadPdf(Request $request, Invoice $invoice): Response
+    {
+        $user = $request->user();
+
+        if (Gate::allows('invoice.view_any')) {
+            if ($invoice->status === 'draft' && !Gate::allows('invoice.view_draft')) {
+                abort(403, 'Forbidden');
+            }
+        } else {
+            if (!$user->customer_id || $user->customer_id !== $invoice->client_id) {
+                abort(403, 'Forbidden');
+            }
+
+            if (!$invoice->canBeViewedByCustomer()) {
+                abort(403, 'Forbidden');
+            }
+        }
+
+        $invoice->load(['client', 'items.productService']);
+
+        $code = $invoice->code ?: $invoice->invoice_number;
+        $cleanCode = ltrim($code, '#');
+        $baseName = str_starts_with($cleanCode, 'invoice-') ? $cleanCode : "invoice-{$cleanCode}";
+        $filename = "{$baseName}.pdf";
+
+        $pdf = Pdf::loadView('invoices.pdf', [
+            'invoice' => $invoice,
+        ]);
+
+        $pdf->setPaper('a4', 'portrait');
+
+        header('X-Filename: ' . $filename);
+
+        return $pdf->download($filename);
     }
 
     private function generateMarkdown(Invoice $invoice): string
