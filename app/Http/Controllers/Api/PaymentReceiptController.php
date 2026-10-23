@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Enums\PaymentStatus;
 use App\Models\CreditPurchase;
 use App\Models\CreditPurchasePayment;
 use Illuminate\Http\JsonResponse;
