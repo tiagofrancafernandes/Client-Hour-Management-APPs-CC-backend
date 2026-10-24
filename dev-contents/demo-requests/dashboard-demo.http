@@ -47,3 +47,4 @@ Accept: application/json
 POST {{baseUrl}}/dashboard/clear-cache
 Authorization: Bearer {{authToken}}
 Accept: application/json
+

@@ -134,3 +134,4 @@ class DashboardController extends Controller
         return filter_var($refresh, FILTER_VALIDATE_BOOLEAN) || filter_var($clearCache, FILTER_VALIDATE_BOOLEAN);
     }
 }
+

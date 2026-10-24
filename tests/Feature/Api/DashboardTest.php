@@ -245,3 +245,4 @@ class DashboardTest extends TestCase
             ->assertJson(['message' => 'Dashboard cache cleared successfully.']);
     }
 }
+
