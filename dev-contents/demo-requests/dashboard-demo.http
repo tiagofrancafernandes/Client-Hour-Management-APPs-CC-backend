@@ -1,0 +1,49 @@
+### Variables
+@baseUrl = https://api.hourledger.local.com/api
+@authToken = {{login.response.body.token}}
+
+### 1. Authenticate / Login (Admin)
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{
+    "email": "admin@mail.com",
+    "password": "power@123"
+}
+
+### 2. Get Dashboard Stats (Cached)
+GET {{baseUrl}}/dashboard/stats
+Authorization: Bearer {{authToken}}
+Accept: application/json
+
+### 3. Get Dashboard Stats with Refresh / Cache Invalidation
+GET {{baseUrl}}/dashboard/stats?refresh=true
+Authorization: Bearer {{authToken}}
+Accept: application/json
+
+### 4. Get Recent Entries (Default sort: created_at desc, limit: 5)
+GET {{baseUrl}}/dashboard/recent-entries?limit=5
+Authorization: Bearer {{authToken}}
+Accept: application/json
+
+### 5. Get Recent Entries (Custom sort: hours desc, limit: 10)
+GET {{baseUrl}}/dashboard/recent-entries?order_by=hours&order_direction=desc&limit=10&refresh=true
+Authorization: Bearer {{authToken}}
+Accept: application/json
+
+### 6. Get Recent Clients (Default sort: created_at desc, limit: 5)
+GET {{baseUrl}}/dashboard/recent-clients?limit=5
+Authorization: Bearer {{authToken}}
+Accept: application/json
+
+### 7. Get Recent Invoices (Default sort: created_at desc, limit: 5)
+GET {{baseUrl}}/dashboard/recent-invoices?limit=5
+Authorization: Bearer {{authToken}}
+Accept: application/json
+
+### 8. Clear Dashboard Cache
+POST {{baseUrl}}/dashboard/clear-cache
+Authorization: Bearer {{authToken}}
+Accept: application/json

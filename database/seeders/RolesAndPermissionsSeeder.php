@@ -122,6 +122,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'payment_method.update',
             'payment_method.update_any',
             'payment_method.toggle',
+
+            // Dashboard
+            'dashboard.view',
         ];
 
         foreach ($permissions as $permission) {
@@ -198,6 +201,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'payment_method.update',
             'payment_method.update_any',
             'payment_method.toggle',
+            'dashboard.view',
         ]);
 
         if (!$isProduction || $debugOn) {
@@ -252,6 +256,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'product_service.create',
             'product_service.update',
             'product_service.delete',
+            'dashboard.view',
         ]);
 
         if (!$isProduction || $debugOn) {

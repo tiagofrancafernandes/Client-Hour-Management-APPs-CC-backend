@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\HealthCheckController;
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\ClientUserController;
 use App\Http\Controllers\Api\CreditPurchaseController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ImportPlanController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\LedgerEntryController;
@@ -139,6 +140,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/by-wallet', [ReportController::class, 'byWallet']);
         Route::get('/by-client', [ReportController::class, 'byClient']);
         Route::get('/export', [ReportController::class, 'export']);
+    });
+
+    // Dashboard Routes (Admin / Super Admin)
+    Route::prefix('dashboard')->group(function () {
+        Route::get('/stats', [DashboardController::class, 'stats']);
+        Route::get('/recent-entries', [DashboardController::class, 'recentEntries']);
+        Route::get('/recent-clients', [DashboardController::class, 'recentClients']);
+        Route::get('/recent-invoices', [DashboardController::class, 'recentInvoices']);
+        Route::post('/clear-cache', [DashboardController::class, 'clearCache']);
     });
 
     // Invoice Routes
